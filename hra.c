@@ -1,37 +1,41 @@
 #include <SDL2/SDL.h>  // Vložení hlavního hlavičkového souboru SDL
 #include <stdbool.h>
 
-int main()
-{
-    bool keyboard = true;
-    SDL_Init(SDL_INIT_VIDEO);   // Inicializace SDL
-
+void game_init (SDL_Window ** window, SDL_Renderer ** renderer) {
     // Vytvoření okna
-    SDL_Window* window = SDL_CreateWindow(
-        "SDL experiments",  // Název
+    *window = SDL_CreateWindow(
+        "Breakout",  // Název
         100,                // Souřadnice x
         100,                // Souřadnice y
         800,                // Šířka
         600,                // Výška
         SDL_WINDOW_SHOWN    // Okno se má po vytvoření rovnou zobrazit
     );
-    SDL_SetWindowTitle(window,"Breakout");
     // Vytvoření kreslítka
-    SDL_Renderer* renderer = SDL_CreateRenderer(
-        window,
+    *renderer = SDL_CreateRenderer(
+        *window,
         -1,
         SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
     );
+}
+
+int main()
+{
+    bool keyboard = true;
+    SDL_Init(SDL_INIT_VIDEO);   // Inicializace SDL
+
+    SDL_Window* window = NULL;
+    SDL_Renderer* renderer = NULL;
+    game_init(&window,&renderer);
 
     SDL_Event event;
     bool quit = false;
 
-    int mouse_x = 200;
-    int mouse_y = 0;
+    int mouse_x = 400;
 
     while (!quit)
     {
-        // Dokud jsou k dispozici nějaké události, ukládej je do proměnné `e`
+        // Dokud jsou k dispozici nějaké události, ukládej je do proměnné `event`
         while (SDL_PollEvent(&event))
         {
             // Pokud došlo k uzavření okna, nastav proměnnou `quit` na `true`
@@ -74,7 +78,6 @@ int main()
 
         SDL_Rect rectToDraw = {mouse_x-50,550,100,20}; //x_start, y_start, width, height
         SDL_RenderFillRect(renderer, &rectToDraw);
-         printf("mousex:%d\n",mouse_x);
 
         // Zobrazení vykreslených prvků na obrazovku
         SDL_RenderPresent(renderer);
