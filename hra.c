@@ -1,15 +1,17 @@
 #include <SDL2/SDL.h>  // Vložení hlavního hlavičkového souboru SDL
 #include <stdbool.h>
+#include <SDL2/SDL_ttf.h>
 
-void game_init (SDL_Window ** window, SDL_Renderer ** renderer) {
-    SDL_Init(SDL_INIT_VIDEO);   // Inicializace SDL
+void game_init (SDL_Window ** window, SDL_Renderer ** renderer, int width, int height) {
+    SDL_Init(SDL_INIT_VIDEO);   // Inicializace SDL	
+    TTF_Init();
     // Vytvoření okna
     *window = SDL_CreateWindow(
         "Breakout",  // Název
         100,                // Souřadnice x
         100,                // Souřadnice y
-        800,                // Šířka
-        600,                // Výška
+        width,                // Šířka
+        height,                // Výška
         SDL_WINDOW_SHOWN    // Okno se má po vytvoření rovnou zobrazit
     );
     // Vytvoření kreslítka
@@ -18,6 +20,7 @@ void game_init (SDL_Window ** window, SDL_Renderer ** renderer) {
         -1,
         SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
     );
+
 }
 
 void quit_game(SDL_Window ** window, SDL_Renderer ** renderer) {
@@ -25,13 +28,34 @@ void quit_game(SDL_Window ** window, SDL_Renderer ** renderer) {
     SDL_DestroyRenderer(*renderer);
     SDL_DestroyWindow(*window);
     SDL_Quit();
+    TTF_Quit();
 }
 
 int main()
 {
+    int res_width = 800;
+    int res_height = 600;
     SDL_Window* window = NULL;
     SDL_Renderer* renderer = NULL;
-    game_init(&window,&renderer);
+    game_init(&window,&renderer,res_width,res_height);
+
+    if(TTF_Init() == -1) {
+        printf( "Unable to render text surface! SDL2_ttf Error: %s\n", TTF_GetError() );
+    }
+    else {
+        printf("SDL2_ttf working fine");
+    }
+
+    TTF_Font* ourFont = TTF_OpenFont("../assets/VT323-Regular.ttf",32);
+    if(ourFont == NULL) {
+        printf( "Failed to load lazy font! SDL_ttf Error: %s\n", TTF_GetError() );
+        exit(1);
+    }
+    SDL_Color textColor = {255,255,255,0};
+    SDL_Surface* surfaceText = TTF_RenderText_Solid( ourFont, "hello world", textColor );
+
+    SDL_Texture* textureText = SDL_CreateTextureFromSurface(renderer,surfaceText);  
+    SDL_FreeSurface(surfaceText);
 
     SDL_Event event;
     bool quit = false;
@@ -57,13 +81,13 @@ int main()
                 switch (event.key.keysym.sym)
                 {
                 case SDLK_LEFT:
-                    pos_x -=  10;
-                    if (pos_x-50 <= 20) pos_x = 80;
+                    pos_x -=  15;
+                    if (pos_x-45 <= 20) pos_x = 70;
                     break;
                 
                 case SDLK_RIGHT:
-                    pos_x +=  10;
-                    if (pos_x+50 >= 780) pos_x = 720;
+                    pos_x +=  15;
+                    if (pos_x+45 >= 780) pos_x = 730;
                     break;
                 
                 default:
@@ -78,11 +102,17 @@ int main()
         // Vykreslení pozadí
         SDL_RenderClear(renderer);
 
-        // Nastavení barvy na červenou
+        // Vykreslení hráčské pálky
         SDL_SetRenderDrawColor(renderer, 255, 128, 128, 255);
-
         SDL_Rect rectToDraw = {pos_x-50,550,100,20}; //x_start, y_start, width, height
         SDL_RenderFillRect(renderer, &rectToDraw);
+        SDL_RenderCopy(renderer,textureText,NULL,&rectToDraw);
+        //Outer space = rgb(68,74,67)
+        SDL_SetRenderDrawColor(renderer, 68, 74, 67, 255);
+        SDL_Rect sideBoundL = {0,0,20,res_height}; //x_start, y_start, width, height
+        SDL_RenderFillRect(renderer, &sideBoundL);
+        SDL_Rect sideBoundR = {780,0,20,res_height};
+        SDL_RenderFillRect(renderer, &sideBoundR);
 
         // Zobrazení vykreslených prvků na obrazovku
         SDL_RenderPresent(renderer);
