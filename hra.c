@@ -53,14 +53,19 @@ int main()
     }
     SDL_Color textColor = {255,255,255,0};
     SDL_Surface* surfaceText = TTF_RenderText_Solid( ourFont, "hello world", textColor );
+    SDL_Surface* surfaceScore = TTF_RenderText_Solid( ourFont, "0000000", textColor );
 
     SDL_Texture* textureText = SDL_CreateTextureFromSurface(renderer,surfaceText);  
+    SDL_Texture* scoreText = SDL_CreateTextureFromSurface(renderer,surfaceScore);  
     SDL_FreeSurface(surfaceText);
+    SDL_FreeSurface(surfaceScore);
 
     SDL_Event event;
     bool quit = false;
     bool keyboard = true;
     int pos_x = 400;
+    bool movement = false;
+    const OUTERSPACE = rgb(68,74,67);
 
     while (!quit)
     {
@@ -107,12 +112,21 @@ int main()
         SDL_Rect rectToDraw = {pos_x-50,550,100,20}; //x_start, y_start, width, height
         SDL_RenderFillRect(renderer, &rectToDraw);
         SDL_RenderCopy(renderer,textureText,NULL,&rectToDraw);
-        //Outer space = rgb(68,74,67)
+
+        //Vykreslení skóre
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+        SDL_Rect scoreBox = {20,0,100,30};
+        SDL_RenderFillRect(renderer,&scoreBox);
+        SDL_RenderCopy(renderer,scoreText,NULL,&scoreBox);
+
+        //Vykreslení okraje herního pole
         SDL_SetRenderDrawColor(renderer, 68, 74, 67, 255);
         SDL_Rect sideBoundL = {0,0,20,res_height}; //x_start, y_start, width, height
         SDL_RenderFillRect(renderer, &sideBoundL);
         SDL_Rect sideBoundR = {780,0,20,res_height};
         SDL_RenderFillRect(renderer, &sideBoundR);
+        SDL_Rect topBound = {20,40,res_width - 40,20};
+        SDL_RenderFillRect(renderer,&topBound);
 
         // Zobrazení vykreslených prvků na obrazovku
         SDL_RenderPresent(renderer);
