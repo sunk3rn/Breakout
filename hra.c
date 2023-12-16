@@ -2,6 +2,12 @@
 #include <stdbool.h>
 #include <SDL2/SDL_ttf.h>
 
+typedef struct {
+    SDL_Rect texture;
+    int dir_x;
+    int dir_y;
+} Ball;
+
 void game_init (SDL_Window ** window, SDL_Renderer ** renderer, int width, int height) {
     SDL_Init(SDL_INIT_VIDEO);   // Inicializace SDL	
     TTF_Init();
@@ -46,14 +52,14 @@ int main()
         printf("SDL2_ttf working fine");
     }
 
-    TTF_Font* ourFont = TTF_OpenFont("../assets/VT323-Regular.ttf",32);
-    if(ourFont == NULL) {
+    TTF_Font* font = TTF_OpenFont("../assets/VT323-Regular.ttf",32);
+    if(font == NULL) {
         printf( "Failed to load lazy font! SDL_ttf Error: %s\n", TTF_GetError() );
         exit(1);
     }
     SDL_Color textColor = {255,255,255,0};
-    SDL_Surface* surfaceText = TTF_RenderText_Solid( ourFont, "hello world", textColor );
-    SDL_Surface* surfaceScore = TTF_RenderText_Solid( ourFont, "0000000", textColor );
+    SDL_Surface* surfaceText = TTF_RenderText_Solid( font, "hello world", textColor );
+    SDL_Surface* surfaceScore = TTF_RenderText_Solid( font, "0000000", textColor );
 
     SDL_Texture* textureText = SDL_CreateTextureFromSurface(renderer,surfaceText);  
     SDL_Texture* scoreText = SDL_CreateTextureFromSurface(renderer,surfaceScore);  
@@ -65,7 +71,10 @@ int main()
     bool keyboard = true;
     int pos_x = 400;
     bool movement = false;
-    // const OUTERSPACE = rgb(68,74,67);
+    int ball_x = 400;
+    int ball_y = 540;
+    Ball ball = {.texture.x = ball_x, .texture.y = ball_y, .texture.w = 10, .texture.h = 10, .dir_x = 1, .dir_y = 1};
+    Ball hitbox_ball = {.texture.x = ball_x -1, .texture.y = ball_y -1, .texture.w = 12, .texture.h = 12, .dir_x = 1, .dir_y = 1};
 
     while (!quit)
     {
@@ -107,12 +116,6 @@ int main()
         // Vykreslení pozadí
         SDL_RenderClear(renderer);
 
-        // Vykreslení hráčské pálky
-        SDL_SetRenderDrawColor(renderer, 255, 128, 128, 255);
-        SDL_Rect rectToDraw = {pos_x-50,550,100,20}; //x_start, y_start, width, height
-        SDL_RenderFillRect(renderer, &rectToDraw);
-        SDL_RenderCopy(renderer,textureText,NULL,&rectToDraw);
-
         //Vykreslení skóre
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
         SDL_Rect scoreBox = {20,0,100,30};
@@ -121,12 +124,44 @@ int main()
 
         //Vykreslení okraje herního pole
         SDL_SetRenderDrawColor(renderer, 68, 74, 67, 255);
-        SDL_Rect sideBoundL = {0,0,20,res_height}; //x_start, y_start, width, height
+        SDL_Rect sideBoundL = {0,0,20,res_height}; 
         SDL_RenderFillRect(renderer, &sideBoundL);
         SDL_Rect sideBoundR = {780,0,20,res_height};
         SDL_RenderFillRect(renderer, &sideBoundR);
         SDL_Rect topBound = {20,40,res_width - 40,20};
         SDL_RenderFillRect(renderer,&topBound);
+
+        // Vykreslení hráčské pálky
+        SDL_SetRenderDrawColor(renderer, 255, 128, 128, 255);
+        SDL_Rect paddle = {pos_x-50,550,100,20}; //x_start, y_start, width, height
+        SDL_RenderFillRect(renderer, &paddle);
+        SDL_RenderCopy(renderer,textureText,NULL,&paddle);
+
+        
+        //BALL RENDERIN
+        ball.texture.x = ball_x;
+        hitbox_ball.texture.x = ball_x -1;
+        if ( ball_x + ball.texture.w >= res_width - 20 || ball_x <= 20 || SDL_HasIntersection(&hitbox_ball.texture,&paddle)) {
+            ball.dir_x *= -1;
+            hitbox_ball.dir_x *= -1;
+        }
+
+        ball_x += ball.dir_x * 3;
+        
+        ball.texture.y = ball_y;
+        hitbox_ball.texture.y = ball_y -1;
+        if ( ball_y + ball.texture.h >= res_height || ball_y <= 60 || SDL_HasIntersection(&hitbox_ball.texture,&paddle)) {
+            ball.dir_y *= -1;
+            hitbox_ball.dir_y *= -1;
+        }
+
+        ball_y += ball.dir_y * 3;
+        SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+        SDL_RenderFillRect(renderer,&hitbox_ball.texture);
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        SDL_RenderFillRect(renderer,&ball.texture);
+
+
 
         // Zobrazení vykreslených prvků na obrazovku
         SDL_RenderPresent(renderer);
