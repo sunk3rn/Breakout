@@ -65,7 +65,7 @@ int main()
     bool keyboard = true;
     int pos_x = 400;
     bool movement = false;
-    const OUTERSPACE = rgb(68,74,67);
+    // const OUTERSPACE = rgb(68,74,67);
 
     while (!quit)
     {

@@ -9,6 +9,13 @@ Hra začíná s osmi řadami cihel, po dvou řadách jiné barvy. Pořadí barev
 
 ## 🏗️ Build Instrutions
 
+Pro překlad je potřeba:
+- CMake
+- SDL2
+- SDL2-ttf
+
+---
+
 ```bash
 mkdir build
 cd build
