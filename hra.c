@@ -47,6 +47,7 @@ int main()
 
     if(TTF_Init() == -1) {
         printf( "Unable to render text surface! SDL2_ttf Error: %s\n", TTF_GetError() );
+        exit(1);
     }
     else {
         printf("SDL2_ttf working fine");
@@ -57,6 +58,7 @@ int main()
         printf( "Failed to load lazy font! SDL_ttf Error: %s\n", TTF_GetError() );
         exit(1);
     }
+
     SDL_Color textColor = {255,255,255,0};
     SDL_Surface* surfaceText = TTF_RenderText_Solid( font, "hello world", textColor );
     SDL_Surface* surfaceScore = TTF_RenderText_Solid( font, "0000000", textColor );
@@ -72,7 +74,7 @@ int main()
     int pos_x = 400;
     bool movement = false;
     int ball_x = 400;
-    int ball_y = 540;
+    int ball_y = 530;
     Ball ball = {.texture.x = ball_x, .texture.y = ball_y, .texture.w = 10, .texture.h = 10, .dir_x = 1, .dir_y = 1};
     Ball hitbox_ball = {.texture.x = ball_x -1, .texture.y = ball_y -1, .texture.w = 12, .texture.h = 12, .dir_x = 1, .dir_y = 1};
 
@@ -138,24 +140,31 @@ int main()
         SDL_RenderCopy(renderer,textureText,NULL,&paddle);
 
         
-        //BALL RENDERIN
+        //BALL RENDERING
         ball.texture.x = ball_x;
         hitbox_ball.texture.x = ball_x -1;
+
         if ( ball_x + ball.texture.w >= res_width - 20 || ball_x <= 20 || SDL_HasIntersection(&hitbox_ball.texture,&paddle)) {
             ball.dir_x *= -1;
             hitbox_ball.dir_x *= -1;
         }
-
         ball_x += ball.dir_x * 3;
-        
+
         ball.texture.y = ball_y;
         hitbox_ball.texture.y = ball_y -1;
+
         if ( ball_y + ball.texture.h >= res_height || ball_y <= 60 || SDL_HasIntersection(&hitbox_ball.texture,&paddle)) {
             ball.dir_y *= -1;
             hitbox_ball.dir_y *= -1;
+            if (SDL_HasIntersection(&hitbox_ball.texture,&paddle) && ball_y > 538) {
+                ball.dir_x *= -1;
+                hitbox_ball.dir_x *= -1;
+            }
+    
         }
-
+        
         ball_y += ball.dir_y * 3;
+
         SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
         SDL_RenderFillRect(renderer,&hitbox_ball.texture);
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
