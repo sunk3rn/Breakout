@@ -50,7 +50,7 @@ int main()
         exit(1);
     }
     else {
-        printf("SDL2_ttf working fine");
+        printf("SDL2_ttf working fine\n");
     }
 
     TTF_Font* font = TTF_OpenFont("../assets/VT323-Regular.ttf",32);
@@ -74,9 +74,10 @@ int main()
     int pos_x = 400;
     bool movement = false;
     int ball_x = 400;
-    int ball_y = 530;
-    Ball ball = {.texture.x = ball_x, .texture.y = ball_y, .texture.w = 10, .texture.h = 10, .dir_x = 1, .dir_y = 1};
+    int ball_y = 520;
+    Ball ball = {.texture.x = ball_x, .texture.y = ball_y, .texture.w = 10, .texture.h = 10, .dir_x = 1, .dir_y = -1};
     Ball hitbox_ball = {.texture.x = ball_x -1, .texture.y = ball_y -1, .texture.w = 12, .texture.h = 12, .dir_x = 1, .dir_y = 1};
+    bool fly_flag = true;
 
     while (!quit)
     {
@@ -141,29 +142,46 @@ int main()
 
         
         //BALL RENDERING
+
         ball.texture.x = ball_x;
         hitbox_ball.texture.x = ball_x -1;
 
-        if ( ball_x + ball.texture.w >= res_width - 20 || ball_x <= 20 || SDL_HasIntersection(&hitbox_ball.texture,&paddle)) {
-            ball.dir_x *= -1;
-            hitbox_ball.dir_x *= -1;
+        if (ball_y >= 590) {
+                fly_flag = false;
         }
-        ball_x += ball.dir_x * 3;
 
-        ball.texture.y = ball_y;
-        hitbox_ball.texture.y = ball_y -1;
-
-        if ( ball_y + ball.texture.h >= res_height || ball_y <= 60 || SDL_HasIntersection(&hitbox_ball.texture,&paddle)) {
-            ball.dir_y *= -1;
-            hitbox_ball.dir_y *= -1;
-            if (SDL_HasIntersection(&hitbox_ball.texture,&paddle) && ball_y > 538) {
+        if (fly_flag) {
+            if ( ball_x + ball.texture.w >= res_width - 20 || ball_x <= 20 || (SDL_HasIntersection(&hitbox_ball.texture, &paddle) && (ball_y + 10 < 550))) {
                 ball.dir_x *= -1;
                 hitbox_ball.dir_x *= -1;
             }
-    
+            
+
+            else if ( ball_y + ball.texture.h >= res_height || ball_y <= 60 || (SDL_HasIntersection(&hitbox_ball.texture, &paddle) && (ball_y + 10 < 550))) {
+                ball.dir_y *= -1;
+                hitbox_ball.dir_y *= -1;
+            }
+
+            if (SDL_HasIntersection(&hitbox_ball.texture, &paddle) && (ball_y + 10> 550)) {
+                printf("texture_y: %d,ball_y:%d\n",hitbox_ball.texture.y, ball_y);
+                if (SDL_HasIntersection(&hitbox_ball.texture, &paddle)) {
+                    ball_y -= ((ball_y + ball.texture.h) - 550 + 2) ; 
+                }
+                printf("AFTER:6 texture_y: %d,ball_y:%d\n",hitbox_ball.texture.y, ball_y);
+                ball.dir_x *= -1;
+                hitbox_ball.dir_x *= -1;
+                ball.dir_y *= -1;
+                hitbox_ball.dir_y *= -1;
+            }
+
+            ball_x += ball.dir_x * 3;
+
+            ball.texture.y = ball_y;
+            hitbox_ball.texture.y = ball_y -1;
+            ball_y += ball.dir_y * 3;
         }
         
-        ball_y += ball.dir_y * 3;
+        
 
         SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
         SDL_RenderFillRect(renderer,&hitbox_ball.texture);

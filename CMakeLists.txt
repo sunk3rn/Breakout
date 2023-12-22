@@ -8,12 +8,8 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address")
 
 # Vyhledání knihovny SDL
 find_package(SDL2 REQUIRED)
-message(STATUS "SDL2 found: ${SDL2_FOUND}")
 
 find_package(SDL2_ttf REQUIRED)
-if(NOT SDL2_ttf_FOUND)
-  message(FATAL_ERROR "SDL2_ttf not found")
-endif()
 link_directories(${SDL2_TTF_LIBRARY_DIRS})
 
 # Vytvoření programu s názvem `hra`
