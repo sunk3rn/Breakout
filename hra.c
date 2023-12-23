@@ -209,17 +209,18 @@ int main()
             //Odrážení míčku od vrchu pálky
             if (SDL_HasIntersection(&hitbox_ball.texture, &paddle) && (ball_y < 550)) {
                 printf("dirx: %d,diry:%d\n",ball.dir_x, ball.dir_y);
-                if (ball.dir_x == -1 && ball.dir_y == 1 ) {
-                    ball.dir_y = -1;
-                    hitbox_ball.dir_y = -1;
+                ball.dir_y = -1;
+                hitbox_ball.dir_y = -1;
+                if (ball_x > paddle.x + 50) {
+                    ball.dir_x = 1;
+                    hitbox_ball.dir_x = 1;
                 }
-                else if (ball.dir_x == 1 && ball.dir_y == 1 ) {
-                    ball.dir_y = -1;
-                    hitbox_ball.dir_y = -1;
+                else {
+                    ball.dir_x = -1;
+                    hitbox_ball.dir_x = -1;
                 }
                 printf("AFTER dirx: %d,diry:%d\n",ball.dir_x, ball.dir_y);
             }
-
 
             //Kontrola kolize s bočními hranicemi herního pole
             if ( ball_x + ball.texture.w >= res_width - 20 || ball_x <= 20) {
