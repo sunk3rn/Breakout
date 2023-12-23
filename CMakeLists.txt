@@ -14,7 +14,7 @@ link_directories(${SDL2_TTF_LIBRARY_DIRS})
 
 # Vytvoření programu s názvem `hra`
 # Program se bude skládat ze dvou zadaných zdrojových souborů (jednotek překladu)
-add_executable(hra hra.c)
+add_executable(hra hra.c logika.c)
 #add_executable(hra hra.c grafika.c)
 
 # Nastavte linker tak, aby vyhledával knihovnu SDL_ttf

@@ -3,76 +3,7 @@
 #include <SDL2/SDL.h> 
 #include <stdbool.h>
 #include <SDL2/SDL_ttf.h>
-
-typedef struct {
-    SDL_Rect texture;
-    int dir_x;
-    int dir_y;
-} Ball;
-
-typedef struct {
-    SDL_Rect texture;
-    bool broken;
-} Block;
-
-void game_init (SDL_Window ** window, SDL_Renderer ** renderer, int width, int height) {
-    SDL_Init(SDL_INIT_VIDEO);   // Inicializace SDL	
-
-    if(TTF_Init() == -1) {
-        printf( "Unable to render text surface! SDL2_ttf Error: %s\n", TTF_GetError() );
-        exit(1);
-    }
-    else {
-        printf("SDL2_ttf working fine\n");
-    }
-
-    // Vytvoření okna
-    *window = SDL_CreateWindow(
-        "Breakout",  // Název
-        100,                // Souřadnice x
-        100,                // Souřadnice y
-        width,                // Šířka
-        height,                // Výška
-        SDL_WINDOW_SHOWN    // Okno se má po vytvoření rovnou zobrazit
-    );
-    // Vytvoření kreslítka
-    *renderer = SDL_CreateRenderer(
-        *window,
-        -1,
-        SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
-    );
-
-}
-
-int calc_digit(int num) {
-    int digits = 0;
-    if (num == 0) {
-        return 1;
-    }
-    while (num > 0) {
-        num /= 10;
-        digits++;
-    }
-
-    return digits;
-}
-
-char * format_score(int number) {
-    int digits = calc_digit(number);
-    char zeroes[9] = "0000000";
-    char *output = (char *)malloc(9 + 1);
-    zeroes[8-digits] = '\0';
-    sprintf(output,"%s%d",zeroes,number);
-    return output;
-}
-
-void quit_game(SDL_Window ** window, SDL_Renderer ** renderer) {
-    // Uvolnění prostředků
-    SDL_DestroyRenderer(*renderer);
-    SDL_DestroyWindow(*window);
-    SDL_Quit();
-    TTF_Quit();
-}
+#include "logika.h"
 
 
 int main()
@@ -135,8 +66,8 @@ int main()
             }
             if(event.type == SDL_MOUSEMOTION && !keyboard) {
                 pos_x =  event.motion.x;
-                if (pos_x-50 <= 50) pos_x = 80;
-                else if (pos_x+50 >= 750) pos_x = 720;
+                if (pos_x-50 <= 25) pos_x = 75;
+                else if (pos_x+50 >= 775) pos_x = 725;
             }
             if (SDL_KEYDOWN && keyboard) {
                 switch (event.key.keysym.sym)
@@ -174,12 +105,18 @@ int main()
 
         //Vykreslení okraje herního pole
         SDL_SetRenderDrawColor(renderer, 68, 74, 67, 255);
-        SDL_Rect sideBoundL = {0,0,20,res_height}; 
+        SDL_Rect sideBoundL = {0,40,25,res_height}; 
         SDL_RenderFillRect(renderer, &sideBoundL);
-        SDL_Rect sideBoundR = {780,0,20,res_height};
+        SDL_Rect sideBoundR = {775,40,25,res_height};
         SDL_RenderFillRect(renderer, &sideBoundR);
         SDL_Rect topBound = {20,40,res_width - 40,20};
         SDL_RenderFillRect(renderer,&topBound);
+        SDL_SetRenderDrawColor(renderer, 77, 188, 215, 255);
+        SDL_Rect sideBound_B = {0,550,25,20};
+        SDL_RenderFillRect(renderer,&sideBound_B);
+        SDL_SetRenderDrawColor(renderer, 218, 52, 16, 255);
+        SDL_Rect sideBound_R = {775,550,25,20};
+        SDL_RenderFillRect(renderer,&sideBound_R);
 
         //Vykreslování bloků
         SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
