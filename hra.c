@@ -1,4 +1,6 @@
-#include <SDL2/SDL.h>  // Vložení hlavního hlavičkového souboru SDL
+#include <stdio.h>
+#include <stdlib.h>
+#include <SDL2/SDL.h> 
 #include <stdbool.h>
 #include <SDL2/SDL_ttf.h>
 
@@ -7,6 +9,11 @@ typedef struct {
     int dir_x;
     int dir_y;
 } Ball;
+
+typedef struct {
+    SDL_Rect texture;
+    bool broken;
+} Block;
 
 void game_init (SDL_Window ** window, SDL_Renderer ** renderer, int width, int height) {
     SDL_Init(SDL_INIT_VIDEO);   // Inicializace SDL	
@@ -37,6 +44,28 @@ void game_init (SDL_Window ** window, SDL_Renderer ** renderer, int width, int h
 
 }
 
+int calc_digit(int num) {
+    int digits = 0;
+    if (num == 0) {
+        return 1;
+    }
+    while (num > 0) {
+        num /= 10;
+        digits++;
+    }
+
+    return digits;
+}
+
+char * format_score(int number) {
+    int digits = calc_digit(number);
+    char zeroes[9] = "0000000";
+    char *output = (char *)malloc(9 + 1);
+    zeroes[8-digits] = '\0';
+    sprintf(output,"%s%d",zeroes,number);
+    return output;
+}
+
 void quit_game(SDL_Window ** window, SDL_Renderer ** renderer) {
     // Uvolnění prostředků
     SDL_DestroyRenderer(*renderer);
@@ -60,14 +89,17 @@ int main()
         exit(1);
     }
 
+    int score = 0;
+    char score_str[9] = "00000000";
+
     SDL_Color textColor = {255,255,255,0};
     SDL_Surface* surfaceText = TTF_RenderText_Solid( font, "hello world", textColor );
-    SDL_Surface* surfaceScore = TTF_RenderText_Solid( font, "0000000", textColor );
+    SDL_Surface* surfaceScore = TTF_RenderText_Solid( font, score_str, textColor );
 
     SDL_Texture* textureText = SDL_CreateTextureFromSurface(renderer,surfaceText);  
     SDL_Texture* scoreText = SDL_CreateTextureFromSurface(renderer,surfaceScore);  
-    SDL_FreeSurface(surfaceText);
     SDL_FreeSurface(surfaceScore);
+    SDL_FreeSurface(surfaceText);
 
     SDL_Event event;
     bool quit = false;
@@ -81,13 +113,14 @@ int main()
     Ball hitbox_ball = {.texture.x = ball_x -1, .texture.y = ball_y -1, .texture.w = 12, .texture.h = 12, .dir_x = 1, .dir_y = 1};
     bool fly_flag = true;
 
-    SDL_Rect * green_blocks = (SDL_Rect *) malloc (sizeof(SDL_Rect) * 15);
+    Block * green_blocks = (Block *) malloc (sizeof(Block) * 15);
 
     for (int i = 0;i < 15;i++) { 
-        green_blocks[i].x = i * 50 + 25;
-        green_blocks[i].y = 100;
-        green_blocks[i].w = 50;
-        green_blocks[i].h = 20;
+        green_blocks[i].texture.x = i * 50 + 25;
+        green_blocks[i].texture.y = 200;
+        green_blocks[i].texture.w = 50;
+        green_blocks[i].texture.h = 20;
+        green_blocks[i].broken = false;
     }
 
     while (!quit)
@@ -134,6 +167,9 @@ int main()
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
         SDL_Rect scoreBox = {20,0,100,30};
         SDL_RenderFillRect(renderer,&scoreBox);
+        if (score > 99999999) score = 0;
+        surfaceScore = TTF_RenderText_Solid( font, format_score(score), textColor );
+        SDL_Texture* scoreText = SDL_CreateTextureFromSurface(renderer,surfaceScore); 
         SDL_RenderCopy(renderer,scoreText,NULL,&scoreBox);
 
         //Vykreslení okraje herního pole
@@ -147,16 +183,15 @@ int main()
 
         //Vykreslování bloků
         SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-        for (int i = 0;i < 15;i++) { 
-            SDL_RenderFillRect(renderer, &green_blocks[i]);
+        for (int i = 0; i < 15; i++) {
+            if (green_blocks[i].broken == true) {
+                SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+            } else {
+                SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+            }
+            
+            SDL_RenderFillRect(renderer, &green_blocks[i].texture);
         }
-
-        // SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
-        // for (int i = 0;i < 15;i++) { 
-        //     SDL_Rect block = {i * 50 + 25,120,50,20};
-        //     SDL_RenderFillRect(renderer, &block);
-        // }
-
 
         // Vykreslení hráčské pálky
         SDL_SetRenderDrawColor(renderer, 255, 128, 128, 255);
@@ -164,10 +199,9 @@ int main()
         SDL_RenderFillRect(renderer, &paddle);
         SDL_RenderCopy(renderer,textureText,NULL,&paddle);
 
-        
         //BALL RENDERING
         if (ball_y >= 590) {
-                fly_flag = false;
+            fly_flag = false;
         }
 
         if (fly_flag) {
@@ -215,23 +249,11 @@ int main()
 
             //Kontrola kolize s bloky
             for (int i = 0;i < 15;i++) {
-                if (SDL_HasIntersection(&hitbox_ball.texture, &green_blocks[i])) {
-                    if (ball.dir_x == 1 && ball.dir_y == -1 ) {
-                        ball.dir_y = 1;
-                        hitbox_ball.dir_y = 1;
-                    }
-                    else if (ball.dir_x == -1 && ball.dir_y == -1 ) {
-                        ball.dir_y = 1;
-                        hitbox_ball.dir_y = 1;
-                    }
-                    // else if (ball.dir_x == 1 && ball.dir_y == -1 ) {
-                    //     ball.dir_y = 1;
-                    //     hitbox_ball.dir_y = 1;
-                    // }
-                    // else if (ball.dir_x == -1 && ball.dir_y == 1 ) {
-                    //     ball.dir_y = 1;
-                    //     hitbox_ball.dir_y = 1;
-                    // }
+                if (SDL_HasIntersection(&hitbox_ball.texture, &green_blocks[i].texture) && !green_blocks[i].broken) {
+                    score++;
+                    green_blocks[i].broken = true;
+                    ball.dir_y *= -1;
+                    hitbox_ball.dir_y *= -1;
 
                 }
                 
@@ -245,7 +267,6 @@ int main()
             ball.texture.y = ball_y;
             hitbox_ball.texture.y = ball_y -1;
             ball_y += ball.dir_y * 3;
-
             
         }
         

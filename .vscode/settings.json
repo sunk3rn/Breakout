@@ -2,6 +2,7 @@
     "cmake.configureOnOpen": true,
     "files.associations": {
         "sdl.h": "c",
-        "sdl_ttf.h": "c"
+        "sdl_ttf.h": "c",
+        "stdbool.h": "c"
     }
 }
