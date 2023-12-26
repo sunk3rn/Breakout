@@ -53,6 +53,12 @@ char * format_score(int number) {
     return output;
 }
 
+char * format_lives(int lives) {
+    char *output = (char *)malloc(9 + 1);
+    sprintf(output,"Lives: %d",lives);
+    return output;
+}
+
 void quit_game(SDL_Window ** window, SDL_Renderer ** renderer) {
     // Uvolnění prostředků
     SDL_DestroyRenderer(*renderer);
