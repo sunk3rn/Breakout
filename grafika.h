@@ -14,12 +14,14 @@ typedef struct {
     int health;
 } Block;
 
-Block * generate_blocks (
+Block * generate_blocks(
     int amount, // Počet bloků k vygenerování
     int health, // počet životů těchto bloků
     int row // řádek, v kterém se mají zobrazit
 );
 
-void draw_blocks (SDL_Renderer * renderer, Block * blocks);
+void draw_blocks(SDL_Renderer * renderer, Block * blocks, int amount);
 
-void draw_bounds (SDL_Renderer * renderer,int res_width, int res_height);
+void draw_bounds(SDL_Renderer * renderer,int res_width, int res_height);
+
+void check_row_collision(Ball *ball, Ball hitbox_ball, Block * blocks,int amount, int * score);

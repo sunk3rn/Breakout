@@ -26,15 +26,12 @@ int main()
     char lives_str[9] = "Lives: 0";
 
     SDL_Color textColor = {255,255,255,0};
-    SDL_Surface* surfaceText = TTF_RenderText_Solid( font, "hello world", textColor );
     SDL_Surface* surfaceScore = TTF_RenderText_Solid( font, score_str, textColor );
     SDL_Surface* surfaceLives = TTF_RenderText_Solid( font, lives_str, textColor );
 
-    SDL_Texture* textureText = SDL_CreateTextureFromSurface(renderer,surfaceText);  
     SDL_Texture* scoreText = SDL_CreateTextureFromSurface(renderer,surfaceScore);  
     SDL_Texture* livesText = SDL_CreateTextureFromSurface(renderer,surfaceLives);
     SDL_FreeSurface(surfaceScore);
-    SDL_FreeSurface(surfaceText);
     SDL_FreeSurface(surfaceLives);
 
     SDL_Event event;
@@ -51,7 +48,8 @@ int main()
     int lives = 3;
     bool end_game = false;
 
-    Block * green_blocks = generate_blocks(15,5,1);
+    Block * green_blocks = generate_blocks(15,5,0);
+    Block * blocks = generate_blocks(15,2,1);
 
     while (!quit)
     {
@@ -132,13 +130,13 @@ int main()
         draw_bounds(renderer,res_width,res_height);
 
         //Vykreslování bloků
-        draw_blocks(renderer,green_blocks);
+        draw_blocks(renderer,green_blocks,15);
+        draw_blocks(renderer,blocks,15);
 
         // Vykreslení hráčské pálky
         SDL_SetRenderDrawColor(renderer, 255, 128, 128, 255);
         SDL_Rect paddle = {pos_x-50,550,100,20}; //x_start, y_start, width, height
         SDL_RenderFillRect(renderer, &paddle);
-        SDL_RenderCopy(renderer,textureText,NULL,&paddle);
 
         //BALL RENDERING
         //Podmínka pro prohru
@@ -150,7 +148,7 @@ int main()
             ball.dir_x = 0;
             ball.dir_y = 0;
             if (lives == 0) {
-                end_game = true;
+                end_game = true;Hra začíná s osmi řadami cihel, po dvou řadách jiné barvy. Pořadí barev zdola nahoru je žlutá, zelená, oranžová a červená.
             }
         }
 
@@ -198,29 +196,9 @@ int main()
             }
 
             //Kontrola kolize s bloky
-            for (int i = 0; i < 15; i++) {
-                if (SDL_HasIntersection(&hitbox_ball.texture, &green_blocks[i].texture) && !green_blocks[i].broken) {
-                    //printf("LastO:%d\n", last_overlap);
+            check_row_collision(&ball,hitbox_ball,green_blocks,15,&score);
 
-                    if (hitbox_ball.texture.y + hitbox_ball.texture.h / 2 < green_blocks[i].texture.y + green_blocks[i].texture.h / 2) {
-                        ball.dir_y = -1;
-                    } else {
-                        ball.dir_y = 1;
-                    }
-
-                    printf("Score++\n");
-                    score++;
-
-                    green_blocks[i].health--;
-
-                    if (green_blocks[i].health <= 0) {
-                        green_blocks[i].broken = true;
-                    }
-
-
-                    //printf("After LastO:%d\n", last_overlap);
-                }
-            }
+            check_row_collision(&ball,hitbox_ball,blocks,15,&score);
 
             //Pohyb míčku
             ball.texture.x = ball_x;
@@ -234,8 +212,8 @@ int main()
         }
         
         //Vykreslování míčku
-        SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-        SDL_RenderFillRect(renderer,&hitbox_ball.texture);
+        // SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+        // SDL_RenderFillRect(renderer,&hitbox_ball.texture);
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
         SDL_RenderFillRect(renderer,&ball.texture);
 
@@ -244,6 +222,7 @@ int main()
     }
 
     free(green_blocks);
+    free(blocks);
 
     quit_game(&window,&renderer);
 
