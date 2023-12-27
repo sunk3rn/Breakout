@@ -10,7 +10,7 @@ void game_init (SDL_Window ** window, SDL_Renderer ** renderer, int width, int h
         exit(1);
     }
     else {
-        printf("SDL2_ttf working fine\n");
+        printf("SDL2_ttf working\n");
     }
 
     // Vytvoření okna

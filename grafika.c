@@ -8,7 +8,7 @@ Block * generate_blocks (int amount, int health, int row ) {
 
     for (int i = 0;i < amount;i++) { 
         blocks[i].texture.x = i * 50 + 25;
-        blocks[i].texture.y = 200 + row * 20;
+        blocks[i].texture.y = 120 + row * 20;
         blocks[i].texture.w = 50;
         blocks[i].texture.h = 20;
         blocks[i].broken = false;
@@ -47,6 +47,9 @@ void draw_blocks (SDL_Renderer * renderer, Block * blocks, int amount) {
         }
         else if (blocks[i].health == 5){
             SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+        }
+        else if (blocks[i].health <= -1){
+            SDL_SetRenderDrawColor(renderer, 255, 192, 203, 255);
         }
         else {
             SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);

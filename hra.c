@@ -6,6 +6,10 @@
 #include "logika.h"
 #include "grafika.h"
 
+int index_2d_na_1d(int radek, int sloupec, int sirka) {
+    return radek * sirka + sloupec;
+}
+
 
 int main()
 {
@@ -37,19 +41,59 @@ int main()
     SDL_Event event;
     bool quit = false;
     bool keyboard = false;
+    int lives = 3;
+    bool end_game = false;
     
+    bool fly_flag = true;
     int pos_x = 400;
-    bool movement = false;
     int ball_x = 400;
     int ball_y = 520;
     Ball ball = {.texture.x = ball_x, .texture.y = ball_y, .texture.w = 10, .texture.h = 10, .dir_x = 1, .dir_y = -1};
     Ball hitbox_ball = {.texture.x = ball_x -1, .texture.y = ball_y -1, .texture.w = 12, .texture.h = 12, .dir_x = 1, .dir_y = 1};
-    bool fly_flag = true;
-    int lives = 3;
-    bool end_game = false;
 
-    Block * green_blocks = generate_blocks(15,5,0);
-    Block * blocks = generate_blocks(15,2,1);
+    FILE * field_file = NULL;
+    field_file = fopen("../starting-field.txt", "rt");
+    char line[100];
+    Block** field = (Block**)malloc(15 * sizeof(Block*));
+    Block** field2 = (Block**)malloc(15 * sizeof(Block*));
+
+    for (int i = 0; i< 15; i++) {
+        field2[i] = generate_blocks(15,5,i);
+    }
+
+    int row = 0;
+    if (field_file == NULL) {
+        printf("Couldn't open field file\n");
+    }
+    while (fgets(line, sizeof(line), field_file) != NULL) {
+        char* token = strtok(line, "|");
+        int column = 0;
+
+        while (token != NULL && column < 15) {
+            field2[row][column].health = atoi(token);
+
+            if (field2[row][column].health == 0 && token[0] != '0') {
+                printf("Chyba čtení: %s\n", token);
+            }
+
+            token = strtok(NULL, "|");
+            column++;
+        }
+        row++;
+    }
+
+
+    fclose(field_file);
+
+
+    for (int i = 0; i< 15; i++) {
+        field[i] = generate_blocks(15,5,i);
+    }
+    for (int i = 0; i< 15; i++) {
+        field[i][7].broken = true;
+    }
+    // Block * green_blocks = generate_blocks(15,5,0);
+    // Block * blocks = generate_blocks(15,2,1);
 
     while (!quit)
     {
@@ -136,8 +180,11 @@ int main()
         draw_bounds(renderer,res_width,res_height);
 
         //Vykreslování bloků
-        draw_blocks(renderer,green_blocks,15);
-        draw_blocks(renderer,blocks,15);
+        for (int i = 0; i < 15; i++) {
+            draw_blocks(renderer,field2[i],15);
+        }
+        // draw_blocks(renderer,green_blocks,15);
+        // draw_blocks(renderer,blocks,15);
 
         // Vykreslení hráčské pálky
         SDL_SetRenderDrawColor(renderer, 255, 128, 128, 255);
@@ -202,9 +249,12 @@ int main()
             }
 
             //Kontrola kolize s bloky
-            check_row_collision(&ball,hitbox_ball,green_blocks,15,&score);
+            for (int i = 0; i < 15;i++) {
+                check_row_collision(&ball,hitbox_ball,field2[i],15,&score);
+            } 
 
-            check_row_collision(&ball,hitbox_ball,blocks,15,&score);
+            // check_row_collision(&ball,hitbox_ball,green_blocks,15,&score);
+            // check_row_collision(&ball,hitbox_ball,blocks,15,&score);
 
             //Pohyb míčku
             ball.texture.x = ball_x;
@@ -230,8 +280,11 @@ int main()
     SDL_DestroyTexture(scoreText);
     SDL_DestroyTexture(livesText);
 
-    free(green_blocks);
-    free(blocks);
+    for (int i = 0; i < 15;i++) {
+        free(field2[i]);
+    } 
+    // free(green_blocks);
+    // free(blocks);
 
     TTF_CloseFont(font);
 
