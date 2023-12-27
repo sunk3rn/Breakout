@@ -115,16 +115,22 @@ int main()
         SDL_Rect scoreBox = {20,0,100,30};
         SDL_RenderFillRect(renderer,&scoreBox);
         if (score > 99999999) score = 0;
-        surfaceScore = TTF_RenderText_Solid( font, format_score(score), textColor );
+        char *formattedScore = format_score(score);
+        surfaceScore = TTF_RenderText_Solid(font, formattedScore, textColor);
         SDL_Texture* scoreText = SDL_CreateTextureFromSurface(renderer,surfaceScore); 
         SDL_RenderCopy(renderer,scoreText,NULL,&scoreBox);
+        SDL_FreeSurface(surfaceScore);
+        free(formattedScore);
 
         //Vykreslení životů
         SDL_Rect livesBox = {300,0,100,30};
         SDL_RenderFillRect(renderer,&livesBox);
-        surfaceLives = TTF_RenderText_Solid( font, format_lives(lives), textColor );
+        char *formattedLives = format_lives(lives);
+        surfaceLives = TTF_RenderText_Solid(font, formattedLives, textColor);
         SDL_Texture* livesText = SDL_CreateTextureFromSurface(renderer,surfaceLives); 
         SDL_RenderCopy(renderer,livesText,NULL,&livesBox);
+        SDL_FreeSurface(surfaceLives);
+        free(formattedLives);
 
         //Vykreslení okraje herního pole
         draw_bounds(renderer,res_width,res_height);
@@ -148,7 +154,7 @@ int main()
             ball.dir_x = 0;
             ball.dir_y = 0;
             if (lives == 0) {
-                end_game = true;Hra začíná s osmi řadami cihel, po dvou řadách jiné barvy. Pořadí barev zdola nahoru je žlutá, zelená, oranžová a červená.
+                end_game = true;
             }
         }
 
@@ -221,8 +227,13 @@ int main()
         SDL_RenderPresent(renderer);
     }
 
+    SDL_DestroyTexture(scoreText);
+    SDL_DestroyTexture(livesText);
+
     free(green_blocks);
     free(blocks);
+
+    TTF_CloseFont(font);
 
     quit_game(&window,&renderer);
 
