@@ -6,10 +6,25 @@
 #include "logika.h"
 #include "grafika.h"
 
-int index_2d_na_1d(int radek, int sloupec, int sirka) {
-    return radek * sirka + sloupec;
-}
+// void swap(int* a, int* b) {
+//     int tmp = *a;
+//     *a = *b;
+//     *b = tmp;
+// }
 
+// void sortThreeInts(int* a, int* b, int* c) {
+//     if (*a > *b) {
+//         swap(a, b);
+//     }
+
+//     if (*b > *c) {
+//         swap(b, c);
+//     }
+
+//     if (*a > *b) {
+//         swap(a, b);
+//     }
+// }
 
 int main()
 {
@@ -19,19 +34,32 @@ int main()
     SDL_Renderer* renderer = NULL;
     game_init(&window,&renderer,res_width,res_height);
 
+    //Otevírání fontu
     TTF_Font* font = TTF_OpenFont("../assets/VT323-Regular.ttf",32);
     if(font == NULL) {
-        printf( "Failed to load lazy font! SDL_ttf Error: %s\n", TTF_GetError() );
+        printf("Failed to load lazy font! SDL_ttf Error: %s\n", TTF_GetError());
         exit(1);
     }
+
+    // FILE * score_file = NULL;
+    // score_file = fopen("../score.txt", "rt");
+    // char line[100];
+
+    // char** file_content = read_score("../score.txt");
+
+    // for (int i = 0;i < 3;i++) {
+    //     printf("Score[%d]:%s",i+1,file_content[i]);
+    // }
+
+    // fclose(score_file);
 
     int score = 0;
     char score_str[9] = "00000000";
     char lives_str[9] = "Lives: 0";
 
     SDL_Color textColor = {255,255,255,0};
-    SDL_Surface* surfaceScore = TTF_RenderText_Solid( font, score_str, textColor );
-    SDL_Surface* surfaceLives = TTF_RenderText_Solid( font, lives_str, textColor );
+    SDL_Surface* surfaceScore = TTF_RenderText_Solid(font, score_str, textColor);
+    SDL_Surface* surfaceLives = TTF_RenderText_Solid(font, lives_str, textColor);
 
     SDL_Texture* scoreText = SDL_CreateTextureFromSurface(renderer,surfaceScore);  
     SDL_Texture* livesText = SDL_CreateTextureFromSurface(renderer,surfaceLives);
@@ -43,27 +71,27 @@ int main()
     bool keyboard = false;
     int lives = 3;
     bool end_game = false;
-    
+    bool render_ball = false;
     bool fly_flag = true;
     int pos_x = 400;
     int ball_x = 400;
     int ball_y = 520;
-    Ball ball = {.texture.x = ball_x, .texture.y = ball_y, .texture.w = 10, .texture.h = 10, .dir_x = 1, .dir_y = -1};
-    Ball hitbox_ball = {.texture.x = ball_x -1, .texture.y = ball_y -1, .texture.w = 12, .texture.h = 12, .dir_x = 1, .dir_y = 1};
+    Ball ball = {.texture.x = ball_x, .texture.y = ball_y, .texture.w = 10, .texture.h = 10, .dir_x = 0, .dir_y = 0};
+    Ball hitbox_ball = {.texture.x = ball_x -1, .texture.y = ball_y -1, .texture.w = 12, .texture.h = 12, .dir_x = 0, .dir_y = 0};
 
     FILE * field_file = NULL;
     field_file = fopen("../starting-field.txt", "rt");
-    char line[100];
     Block** field = (Block**)malloc(15 * sizeof(Block*));
     Block** field2 = (Block**)malloc(15 * sizeof(Block*));
 
     for (int i = 0; i< 15; i++) {
         field2[i] = generate_blocks(15,5,i);
     }
+    char * line[100];
 
     int row = 0;
     if (field_file == NULL) {
-        printf("Couldn't open field file\n");
+        printf("Herní pole nebylo načteno\n");
     }
     while (fgets(line, sizeof(line), field_file) != NULL) {
         char* token = strtok(line, "|");
@@ -126,27 +154,13 @@ int main()
                     break;
                 }
             }
-            if (event.type == SDL_KEYDOWN) {
-                switch (event.key.keysym.sym)
-                {
-                case SDLK_r:
-                ball_x = 100;
-                ball_y = 100;
-                ball.dir_x = 0;
-                ball.dir_y = 0;
-                break;
-
-                case SDLK_g:
-                ball_x = 300;
-                ball_y = 300;
+            if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_SPACE  && lives > 0) {
+                render_ball = true;
+                ball_x = pos_x + 50;
+                ball_y = 540;
                 ball.dir_x = 1;
                 ball.dir_y = -1;
                 fly_flag = true;
-                break;
-
-                default:
-                    break;
-                }
             }
         }
 
@@ -196,7 +210,7 @@ int main()
         if (ball_y >= 590) {
             fly_flag = false;
             lives--;
-            ball_x = 300;
+            ball_x = 10;
             ball_y = 300;
             ball.dir_x = 0;
             ball.dir_y = 0;
@@ -209,7 +223,7 @@ int main()
 
             //Odrážení míčku od vrchu pálky
             if (SDL_HasIntersection(&hitbox_ball.texture, &paddle) && (ball_y < 550)) {
-                printf("dirx: %d,diry:%d\n",ball.dir_x, ball.dir_y);
+                // printf("dirx: %d,diry:%d\n",ball.dir_x, ball.dir_y);
                 ball.dir_y = -1;
                 hitbox_ball.dir_y = -1;
                 if (ball_x > paddle.x + 50) {
@@ -220,7 +234,7 @@ int main()
                     ball.dir_x = -1;
                     hitbox_ball.dir_x = -1;
                 }
-                printf("AFTER dirx: %d,diry:%d\n",ball.dir_x, ball.dir_y);
+                // printf("AFTER dirx: %d,diry:%d\n",ball.dir_x, ball.dir_y);
             }
 
             //Kontrola kolize s bočními hranicemi herního pole
@@ -236,16 +250,16 @@ int main()
 
             //Boční odrážení míčku od pálky 
             if (SDL_HasIntersection(&hitbox_ball.texture, &paddle) && (ball_y > 550)) { 
-                printf("texture_y: %d,ball_y:%d\n",hitbox_ball.texture.y, ball_y);
-                printf("dirx: %d,diry:%d\n",ball.dir_x, ball.dir_y);
+                // printf("texture_y: %d,ball_y:%d\n",hitbox_ball.texture.y, ball_y);
+                // printf("dirx: %d,diry:%d\n",ball.dir_x, ball.dir_y);
                 if (SDL_HasIntersection(&hitbox_ball.texture, &paddle)) ball_y -= ((ball_y + ball.texture.h) - 550 + 2); 
 
-                printf("AFTER:6 texture_y: %d,ball_y:%d\n",hitbox_ball.texture.y, ball_y);
+                //printf("AFTER:6 texture_y: %d,ball_y:%d\n",hitbox_ball.texture.y, ball_y);
                 ball.dir_x *= -1;
                 hitbox_ball.dir_x *= -1;
                 ball.dir_y *= -1;
                 hitbox_ball.dir_y *= -1;
-                printf("AFTER dirx: %d,diry:%d\n",ball.dir_x, ball.dir_y);
+                //printf("AFTER dirx: %d,diry:%d\n",ball.dir_x, ball.dir_y);
             }
 
             //Kontrola kolize s bloky
@@ -270,8 +284,10 @@ int main()
         //Vykreslování míčku
         // SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
         // SDL_RenderFillRect(renderer,&hitbox_ball.texture);
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-        SDL_RenderFillRect(renderer,&ball.texture);
+        if (render_ball) {
+            SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+            SDL_RenderFillRect(renderer,&ball.texture);
+        }
 
         // Zobrazení vykreslených prvků na obrazovku
         SDL_RenderPresent(renderer);
@@ -287,6 +303,7 @@ int main()
     // free(blocks);
 
     TTF_CloseFont(font);
+    //free(file_content);
 
     quit_game(&window,&renderer);
 
