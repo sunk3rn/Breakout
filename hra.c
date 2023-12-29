@@ -54,8 +54,8 @@ int main()
     // fclose(score_file);
 
     int score = 0;
-    char score_str[9] = "00000000";
-    char lives_str[9] = "Lives: 0";
+    SDL_Color textColor = {255,255,255,0};
+    SDL_Color selectedColor = {255,0,0,0};
 
     SDL_Event event;
     bool quit = false;
@@ -65,6 +65,8 @@ int main()
     bool render_ball = false;
     bool fly_flag = true;
     bool loaded_field = true;
+    bool game_start = false;
+    int menu = 0;
     int pos_x = 400;
     int ball_x = 400;
     int ball_y = 520;
@@ -109,45 +111,132 @@ int main()
     for (int i = 0; i< 15; i++) {
         field[i] = generate_blocks(15,5,i);
     }
+
+    int menu_option = 1;
     
     while (!quit)
     {
         // Dokud jsou k dispozici nějaké události, ukládej je do proměnné `event`
         while (SDL_PollEvent(&event))
         {
-            // Pokud došlo k uzavření okna, nastav proměnnou `quit` na `true`
-            if (event.type == SDL_QUIT) {
+            switch (event.type)
+            {
+            case SDL_QUIT: // Pokud došlo k uzavření okna, nastav proměnnou `quit` na `true`
                 quit = true;
-            }
-            if(event.type == SDL_MOUSEMOTION && !keyboard) {
-                pos_x =  event.motion.x;
-                if (pos_x-50 <= 25) pos_x = 75;
-                else if (pos_x+50 >= 775) pos_x = 725;
-            }
-            if (event.type == SDL_KEYDOWN && keyboard) {
+                break;
+            
+            case SDL_MOUSEMOTION: //Pohyb myši
+                if(!keyboard) {
+                    pos_x =  event.motion.x;
+                    if (pos_x-50 <= 25) pos_x = 75;
+                    else if (pos_x+50 >= 775) pos_x = 725;
+                }
+                break;
+            
+            case SDL_KEYDOWN:
                 switch (event.key.keysym.sym)
                 {
                 case SDLK_LEFT:
-                    pos_x -=  15;
-                    if (pos_x-45 <= 20) pos_x = 70;
+                    if (menu == 2 && menu_option ==2) {
+                        lives--;
+                        if (lives <= 0) lives = 99;
+                    }
+                    else if (keyboard) {
+                        pos_x -=  25;
+                        if (pos_x-45 <= 20) pos_x = 70;
+                    }
                     break;
                 
                 case SDLK_RIGHT:
-                    pos_x +=  15;
-                    if (pos_x+45 >= 780) pos_x = 730;
+                    if (menu == 2 && menu_option ==2) {
+                        lives++;
+                        if (lives > 99) lives = 1;
+                    }
+                    else if (keyboard) {
+                        pos_x +=  25;
+                        if (pos_x+45 >= 780) pos_x = 730;
+                    }
+                    break;
+                
+                case SDLK_UP:
+                    if (menu == 1 || menu == 2) {
+                        menu_option--;
+                        if (menu_option <= 0) menu_option = 3;
+                    }
+                    break;
+                
+                case SDLK_DOWN:
+                    if (menu == 1 || menu == 2) {
+                        menu_option++;
+                        if (menu_option > 3) menu_option = 1;
+                    }
+                    break;
+
+                case SDLK_RETURN:
+                    if (menu == 1) {
+                        switch (menu_option)
+                        {
+                        case 1:
+                            game_start = true;
+                            break;
+
+                        case 2:
+                            menu = 2;
+                            break;
+
+                        case 3:
+                            quit = true;
+                            break;
+                        
+                        default:
+                            break;
+                        }
+                    }
+                    else if (menu == 2 ) {
+                        switch (menu_option)
+                        {
+                        case 1:
+                            keyboard = !keyboard;
+                            break;
+
+                        case 2:
+                            menu = 2;
+                            menu_option = 1;
+                            break;
+
+                        case 3:
+                            menu = 1;
+                            break;
+                        
+                        default:
+                            break;
+                        }
+                    }
+                    break;
+
+                case SDLK_SPACE:
+                    if (lives > 0 && game_start) {
+                        render_ball = true;
+                        ball_x = pos_x + 50;
+                        ball_y = 540;
+                        ball.dir_x = 1;
+                        ball.dir_y = -1;
+                        fly_flag = true;
+                    }
+                    else if (!game_start) {
+                        if (menu == 0) {
+                            menu = 1;
+                        }
+                    }
                     break;
                 
                 default:
                     break;
                 }
-            }
-            if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_SPACE  && lives > 0) {
-                render_ball = true;
-                ball_x = pos_x + 50;
-                ball_y = 540;
-                ball.dir_x = 1;
-                ball.dir_y = -1;
-                fly_flag = true;
+                break;
+            
+            default:
+                break;
             }
         }
 
@@ -155,103 +244,110 @@ int main()
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        draw_gui(renderer,font,score,lives);
-
-        //Vykreslení okraje herního pole
-        draw_bounds(renderer,res_width,res_height);
-
-        //Vykreslování bloků
-        for (int i = 0; i < 15; i++) {
-            draw_blocks(renderer,field2[i],15);
+        if (game_start == false) { //Hlavní menu hry
+            draw_menu(renderer,font,menu,menu_option,textColor,selectedColor,lives,keyboard);
         }
 
-        // Vykreslení hráčské pálky
-        SDL_SetRenderDrawColor(renderer, 255, 128, 128, 255);
-        SDL_Rect paddle = {pos_x-50,550,100,20}; //x_start, y_start, width, height
-        SDL_RenderFillRect(renderer, &paddle);
+        else { //Začáatek hry
+            draw_gui(renderer,font,score,lives);
 
-        //BALL RENDERING
-        //Podmínka pro prohru
-        if (ball_y >= 590) {
-            fly_flag = false;
-            lives--;
-            ball_x = 10;
-            ball_y = 300;
-            ball.dir_x = 0;
-            ball.dir_y = 0;
-            if (lives == 0) {
-                end_game = true;
+            //Vykreslení okraje herního pole
+            draw_bounds(renderer,res_width,res_height);
+
+            //Vykreslování bloků
+            for (int i = 0; i < 15; i++) {
+                draw_blocks(renderer,field2[i],15);
             }
-        }
 
-        if (fly_flag) {
+            // Vykreslení hráčské pálky
+            SDL_SetRenderDrawColor(renderer, 255, 128, 128, 255);
+            SDL_Rect paddle = {pos_x-50,550,100,20}; //x_start, y_start, width, height
+            SDL_RenderFillRect(renderer, &paddle);
 
-            //Odrážení míčku od vrchu pálky
-            if (SDL_HasIntersection(&hitbox_ball.texture, &paddle) && (ball_y < 550)) {
-                // printf("dirx: %d,diry:%d\n",ball.dir_x, ball.dir_y);
-                ball.dir_y = -1;
-                hitbox_ball.dir_y = -1;
-                if (ball_x > paddle.x + 50) {
-                    ball.dir_x = 1;
-                    hitbox_ball.dir_x = 1;
+            //BALL RENDERING
+            if (ball_y >= 590) { //Podmínka pro prohru
+                fly_flag = false;
+                lives--;
+                ball_x = 10;
+                ball_y = 300;
+                ball.dir_x = 0;
+                ball.dir_y = 0;
+                if (lives == 0) {
+                    end_game = true;
                 }
-                else {
-                    ball.dir_x = -1;
-                    hitbox_ball.dir_x = -1;
+            }
+
+            if (fly_flag) {
+                //Odrážení míčku od vrchu pálky
+                if (SDL_HasIntersection(&hitbox_ball.texture, &paddle) && (ball_y < 550)) {
+                    // printf("dirx: %d,diry:%d\n",ball.dir_x, ball.dir_y);
+                    ball.dir_y = -1;
+                    hitbox_ball.dir_y = -1;
+                    if (ball_x > paddle.x + 50) {
+                        ball.dir_x = 1;
+                        hitbox_ball.dir_x = 1;
+                    }
+                    else {
+                        ball.dir_x = -1;
+                        hitbox_ball.dir_x = -1;
+                    }
+                    // printf("AFTER dirx: %d,diry:%d\n",ball.dir_x, ball.dir_y);
                 }
-                // printf("AFTER dirx: %d,diry:%d\n",ball.dir_x, ball.dir_y);
+
+                //Kontrola kolize s bočními hranicemi herního pole
+                if ( ball_x + ball.texture.w >= res_width - 20 || ball_x <= 20) {
+                    ball.dir_x *= -1;
+                    hitbox_ball.dir_x *= -1;
+                }
+
+                if ( ball_y + ball.texture.h >= res_height || ball_y <= 60 ) {
+                    ball.dir_y *= -1;
+                    hitbox_ball.dir_y *= -1;
+                }
+
+                //Odrážení míčku od boku pálky 
+                if (SDL_HasIntersection(&hitbox_ball.texture, &paddle) && (ball_y > 550)) { 
+                    // printf("texture_y: %d,ball_y:%d\n",hitbox_ball.texture.y, ball_y);
+                    // printf("dirx: %d,diry:%d\n",ball.dir_x, ball.dir_y);
+                    if (SDL_HasIntersection(&hitbox_ball.texture, &paddle)) ball_y -= ((ball_y + ball.texture.h) - 550 + 2); 
+
+                    //printf("AFTER:6 texture_y: %d,ball_y:%d\n",hitbox_ball.texture.y, ball_y);
+                    ball.dir_x *= -1;
+                    hitbox_ball.dir_x *= -1;
+                    ball.dir_y *= -1;
+                    hitbox_ball.dir_y *= -1;
+                    //printf("AFTER dirx: %d,diry:%d\n",ball.dir_x, ball.dir_y);
+                }
+
+                //Kontrola kolize s bloky
+                for (int i = 0; i < 15;i++) {
+                    check_row_collision(&ball,hitbox_ball,field2[i],15,&score);
+                } 
+
+                // check_row_collision(&ball,hitbox_ball,green_blocks,15,&score);
+                // check_row_collision(&ball,hitbox_ball,blocks,15,&score);
+
+                //Pohyb míčku
+                ball.texture.x = ball_x;
+                hitbox_ball.texture.x = ball_x -1;
+                ball_x += ball.dir_x * 3;
+
+                ball.texture.y = ball_y;
+                hitbox_ball.texture.y = ball_y -1;
+                ball_y += ball.dir_y * 3;
+                
             }
-
-            //Kontrola kolize s bočními hranicemi herního pole
-            if ( ball_x + ball.texture.w >= res_width - 20 || ball_x <= 20) {
-                ball.dir_x *= -1;
-                hitbox_ball.dir_x *= -1;
-            }
-
-            if ( ball_y + ball.texture.h >= res_height || ball_y <= 60 ) {
-                ball.dir_y *= -1;
-                hitbox_ball.dir_y *= -1;
-            }
-
-            //Boční odrážení míčku od pálky 
-            if (SDL_HasIntersection(&hitbox_ball.texture, &paddle) && (ball_y > 550)) { 
-                // printf("texture_y: %d,ball_y:%d\n",hitbox_ball.texture.y, ball_y);
-                // printf("dirx: %d,diry:%d\n",ball.dir_x, ball.dir_y);
-                if (SDL_HasIntersection(&hitbox_ball.texture, &paddle)) ball_y -= ((ball_y + ball.texture.h) - 550 + 2); 
-
-                //printf("AFTER:6 texture_y: %d,ball_y:%d\n",hitbox_ball.texture.y, ball_y);
-                ball.dir_x *= -1;
-                hitbox_ball.dir_x *= -1;
-                ball.dir_y *= -1;
-                hitbox_ball.dir_y *= -1;
-                //printf("AFTER dirx: %d,diry:%d\n",ball.dir_x, ball.dir_y);
-            }
-
-            //Kontrola kolize s bloky
-            for (int i = 0; i < 15;i++) {
-                check_row_collision(&ball,hitbox_ball,field2[i],15,&score);
-            } 
-
-            // check_row_collision(&ball,hitbox_ball,green_blocks,15,&score);
-            // check_row_collision(&ball,hitbox_ball,blocks,15,&score);
-
-            //Pohyb míčku
-            ball.texture.x = ball_x;
-            hitbox_ball.texture.x = ball_x -1;
-            ball_x += ball.dir_x * 3;
-
-            ball.texture.y = ball_y;
-            hitbox_ball.texture.y = ball_y -1;
-            ball_y += ball.dir_y * 3;
             
-        }
-        
-        //Vykreslování míčku
-        // SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-        // SDL_RenderFillRect(renderer,&hitbox_ball.texture);
-        if (render_ball) {
-            SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-            SDL_RenderFillRect(renderer,&ball.texture);
+            //Vykreslování míčku
+            // SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+            // SDL_RenderFillRect(renderer,&hitbox_ball.texture);
+            if (render_ball) {
+                SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+                SDL_RenderFillRect(renderer,&ball.texture);
+            }
+            else {
+                draw_prompt(renderer,font,"Press SPACE to release the ball",200,450,450,50,textColor); 
+            }
         }
 
         // Zobrazení vykreslených prvků na obrazovku

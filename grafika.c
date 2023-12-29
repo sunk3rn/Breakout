@@ -115,3 +115,96 @@ void draw_gui(SDL_Renderer * renderer,TTF_Font* font,int score,int lives) {
     SDL_FreeSurface(surfaceLives);
     free(formattedLives);
 }
+
+void draw_logo(SDL_Renderer * renderer,TTF_Font* font,int posx, int posy, int width, int height) {
+    char logo[9] = "Breakout";
+    SDL_Color textColor = {255,0,0,0};
+    SDL_Color bgColor = {255,255,255,0};
+    SDL_Surface* surfaceLogo = TTF_RenderText_Solid(font, logo, textColor);
+    SDL_Surface* surfaceBg = TTF_RenderText_Solid(font, logo, bgColor);
+    SDL_Texture* logoTexture = SDL_CreateTextureFromSurface(renderer,surfaceLogo);
+    SDL_Texture* bgTexture = SDL_CreateTextureFromSurface(renderer,surfaceBg);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+    SDL_Rect logoRect = {posx,posy,width,height};
+    SDL_Rect bgRect = {posx+1,posy-1,width,height};
+    SDL_RenderFillRect(renderer,&logoRect);
+    SDL_RenderFillRect(renderer,&bgRect);
+    SDL_RenderCopy(renderer,bgTexture,NULL,&bgRect);
+    SDL_RenderCopy(renderer,logoTexture,NULL,&logoRect);
+    SDL_FreeSurface(surfaceLogo);
+    SDL_FreeSurface(surfaceBg);
+}
+
+void draw_prompt(SDL_Renderer * renderer,TTF_Font* font, char * text,int posx, int posy, int width, int height, SDL_Color textColor) {
+    SDL_Surface* surfaceLogo = TTF_RenderText_Solid(font, text, textColor);
+    SDL_Texture* logoTexture = SDL_CreateTextureFromSurface(renderer,surfaceLogo);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+    SDL_Rect logoRect = {posx,posy,width,height};
+    SDL_RenderFillRect(renderer,&logoRect);
+    SDL_RenderCopy(renderer,logoTexture,NULL,&logoRect);
+    SDL_FreeSurface(surfaceLogo);
+}
+
+void draw_menu(SDL_Renderer * renderer,TTF_Font* font,int menu, int menu_option,SDL_Color textColor,SDL_Color selectedColor,int lives, bool keyboard) {
+    if(menu == 0) {
+        draw_logo(renderer,font,150,250,500,200);
+        draw_prompt(renderer,font,"Press space to continue",250,450,320,50,textColor);
+        }
+    else if(menu == 1) {
+        draw_logo(renderer,font,250,150,300,100);
+        switch (menu_option)
+        {
+        case 1:
+            draw_prompt(renderer,font,"Start game",250,300,250,50,selectedColor);
+            draw_prompt(renderer,font,"Settings",250,350,220,50,textColor);
+            draw_prompt(renderer,font,"Quit game",250,400,250,50,textColor);
+            break;
+        
+        case 2:
+            draw_prompt(renderer,font,"Start game",250,300,250,50,textColor);
+            draw_prompt(renderer,font,"Settings",250,350,220,50,selectedColor);
+            draw_prompt(renderer,font,"Quit game",250,400,250,50,textColor);
+            break;
+
+        case 3:
+            draw_prompt(renderer,font,"Start game",250,300,250,50,textColor);
+            draw_prompt(renderer,font,"Settings",250,350,220,50,textColor);
+            draw_prompt(renderer,font,"Quit game",250,400,250,50,selectedColor);
+            break;
+        
+        default:
+            break;
+        }
+    }
+    else if (menu == 2) {
+        char * formatted_lives = format_lives(lives);
+        draw_logo(renderer,font,250,150,300,100);
+        switch (menu_option)
+        {
+        case 1:
+            if (keyboard) draw_prompt(renderer,font,"Controls: Keyboard",250,300,250,50,selectedColor);
+            else draw_prompt(renderer,font,"Controls: Mouse",250,300,250,50,selectedColor); 
+            draw_prompt(renderer,font,formatted_lives,250,350,220,50,textColor);
+            draw_prompt(renderer,font,"Main menu",250,400,250,50,textColor);
+            break;
+        
+        case 2:
+            if (keyboard) draw_prompt(renderer,font,"Controls: Keyboard",250,300,250,50,textColor);
+            else draw_prompt(renderer,font,"Controls: Mouse",250,300,250,50,textColor); 
+            draw_prompt(renderer,font,formatted_lives,250,350,220,50,selectedColor);
+            draw_prompt(renderer,font,"Main menu",250,400,250,50,textColor);
+            break;
+
+        case 3:
+            if (keyboard) draw_prompt(renderer,font,"Controls: Keyboard",250,300,250,50,textColor);
+            else draw_prompt(renderer,font,"Controls: Mouse",250,300,250,50,textColor); 
+            draw_prompt(renderer,font,formatted_lives,250,350,220,50,textColor);
+            draw_prompt(renderer,font,"Main menu",250,400,250,50,selectedColor);
+            break;
+        
+        default:
+            break;
+        }
+        free(formatted_lives);
+    }
+}
