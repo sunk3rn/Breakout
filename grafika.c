@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <SDL2/SDL_ttf.h>
 #include "grafika.h"
+#include "logika.h"
 
 Block * generate_blocks (int amount, int health, int row ) {
     Block * blocks = (Block *) malloc (sizeof(Block) * amount);
@@ -79,4 +80,38 @@ void check_row_collision(Ball * ball, Ball hitbox_ball, Block * blocks,int amoun
             }
         }
     }
+}
+
+void draw_gui(SDL_Renderer * renderer,TTF_Font* font,int score,int lives) {
+    char score_str[9] = "00000000";
+    char lives_str[9] = "Lives: 0";
+    SDL_Color textColor = {255,255,255,0};
+    SDL_Surface* surfaceScore = TTF_RenderText_Solid(font, score_str, textColor);
+    SDL_Surface* surfaceLives = TTF_RenderText_Solid(font, lives_str, textColor);
+
+    SDL_Texture* scoreText = SDL_CreateTextureFromSurface(renderer,surfaceScore);  
+    SDL_Texture* livesText = SDL_CreateTextureFromSurface(renderer,surfaceLives);
+    SDL_FreeSurface(surfaceScore);
+    SDL_FreeSurface(surfaceLives);
+    //Vykreslení skóre
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+    SDL_Rect scoreBox = {20,0,100,30};
+    SDL_RenderFillRect(renderer,&scoreBox);
+    if (score > 99999999) score = 0;
+    char *formattedScore = format_score(score);
+    surfaceScore = TTF_RenderText_Solid(font, formattedScore, textColor);
+    scoreText = SDL_CreateTextureFromSurface(renderer,surfaceScore); 
+    SDL_RenderCopy(renderer,scoreText,NULL,&scoreBox);
+    SDL_FreeSurface(surfaceScore);
+    free(formattedScore);
+
+    //Vykreslení životů
+    SDL_Rect livesBox = {300,0,100,30};
+    SDL_RenderFillRect(renderer,&livesBox);
+    char *formattedLives = format_lives(lives);
+    surfaceLives = TTF_RenderText_Solid(font, formattedLives, textColor);
+    livesText = SDL_CreateTextureFromSurface(renderer,surfaceLives); 
+    SDL_RenderCopy(renderer,livesText,NULL,&livesBox);
+    SDL_FreeSurface(surfaceLives);
+    free(formattedLives);
 }

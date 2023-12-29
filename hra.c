@@ -57,15 +57,6 @@ int main()
     char score_str[9] = "00000000";
     char lives_str[9] = "Lives: 0";
 
-    SDL_Color textColor = {255,255,255,0};
-    SDL_Surface* surfaceScore = TTF_RenderText_Solid(font, score_str, textColor);
-    SDL_Surface* surfaceLives = TTF_RenderText_Solid(font, lives_str, textColor);
-
-    SDL_Texture* scoreText = SDL_CreateTextureFromSurface(renderer,surfaceScore);  
-    SDL_Texture* livesText = SDL_CreateTextureFromSurface(renderer,surfaceLives);
-    SDL_FreeSurface(surfaceScore);
-    SDL_FreeSurface(surfaceLives);
-
     SDL_Event event;
     bool quit = false;
     bool keyboard = false;
@@ -73,6 +64,7 @@ int main()
     bool end_game = false;
     bool render_ball = false;
     bool fly_flag = true;
+    bool loaded_field = true;
     int pos_x = 400;
     int ball_x = 400;
     int ball_y = 520;
@@ -87,10 +79,11 @@ int main()
     for (int i = 0; i< 15; i++) {
         field2[i] = generate_blocks(15,5,i);
     }
-    char * line[100];
+    char line[100];
 
     int row = 0;
     if (field_file == NULL) {
+        loaded_field = false;
         printf("Herní pole nebylo načteno\n");
     }
     while (fgets(line, sizeof(line), field_file) != NULL) {
@@ -110,19 +103,13 @@ int main()
         row++;
     }
 
-
     fclose(field_file);
 
 
     for (int i = 0; i< 15; i++) {
         field[i] = generate_blocks(15,5,i);
     }
-    for (int i = 0; i< 15; i++) {
-        field[i][7].broken = true;
-    }
-    // Block * green_blocks = generate_blocks(15,5,0);
-    // Block * blocks = generate_blocks(15,2,1);
-
+    
     while (!quit)
     {
         // Dokud jsou k dispozici nějaké události, ukládej je do proměnné `event`
@@ -168,27 +155,7 @@ int main()
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        //Vykreslení skóre
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-        SDL_Rect scoreBox = {20,0,100,30};
-        SDL_RenderFillRect(renderer,&scoreBox);
-        if (score > 99999999) score = 0;
-        char *formattedScore = format_score(score);
-        surfaceScore = TTF_RenderText_Solid(font, formattedScore, textColor);
-        SDL_Texture* scoreText = SDL_CreateTextureFromSurface(renderer,surfaceScore); 
-        SDL_RenderCopy(renderer,scoreText,NULL,&scoreBox);
-        SDL_FreeSurface(surfaceScore);
-        free(formattedScore);
-
-        //Vykreslení životů
-        SDL_Rect livesBox = {300,0,100,30};
-        SDL_RenderFillRect(renderer,&livesBox);
-        char *formattedLives = format_lives(lives);
-        surfaceLives = TTF_RenderText_Solid(font, formattedLives, textColor);
-        SDL_Texture* livesText = SDL_CreateTextureFromSurface(renderer,surfaceLives); 
-        SDL_RenderCopy(renderer,livesText,NULL,&livesBox);
-        SDL_FreeSurface(surfaceLives);
-        free(formattedLives);
+        draw_gui(renderer,font,score,lives);
 
         //Vykreslení okraje herního pole
         draw_bounds(renderer,res_width,res_height);
@@ -197,8 +164,6 @@ int main()
         for (int i = 0; i < 15; i++) {
             draw_blocks(renderer,field2[i],15);
         }
-        // draw_blocks(renderer,green_blocks,15);
-        // draw_blocks(renderer,blocks,15);
 
         // Vykreslení hráčské pálky
         SDL_SetRenderDrawColor(renderer, 255, 128, 128, 255);
@@ -293,11 +258,10 @@ int main()
         SDL_RenderPresent(renderer);
     }
 
-    SDL_DestroyTexture(scoreText);
-    SDL_DestroyTexture(livesText);
 
     for (int i = 0; i < 15;i++) {
         free(field2[i]);
+        free(field[i]);
     } 
     // free(green_blocks);
     // free(blocks);
