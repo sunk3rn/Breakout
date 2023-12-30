@@ -86,3 +86,43 @@ void sortThreeInts(int* a, int* b, int* c) {
         swap(a, b);
     }
 }
+
+void read_score(int * score_list) {
+    FILE * score_file = NULL;
+    score_file = fopen("../score.txt", "rt");
+    char line[100];
+    for (int i = 0; i < 3; i++) {
+        if (fgets(line, sizeof(line), score_file) != NULL) {
+            score_list[i] = atoi(line);
+            printf("Score[%d]: %d\n", i + 1, score_list[i]);
+        } else {
+            printf("Error čtení skóre\n");
+            break;
+        }
+    }
+
+    sortThreeInts(&score_list[0],&score_list[1],&score_list[2]);
+    fclose(score_file);
+}
+
+void save_score(int * score_list, int score) {
+    //Uložení skóre
+    for (int i = 2; i >= 0;i--) {
+        if (score_list[i] < score) {
+            if (i != 2) {
+                score_list[i+1] = score_list[i];
+            }
+            score_list[i] = score;  
+        }
+    }
+
+    FILE * score_file = NULL;
+    score_file = fopen("../score.txt", "wt");
+    
+    //Zapsání skóre do souboru
+    for (int i = 0; i < 3; i++) {
+        fprintf(score_file, "%d\n", score_list[i]);
+    }
+    fclose(score_file);
+}
+

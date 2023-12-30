@@ -21,26 +21,10 @@ int main()
         exit(1);
     }
 
-    FILE * score_file = NULL;
-    score_file = fopen("../score.txt", "rt");
-    char line2[100];
-
     int score_list[3];
 
-    for (int i = 0; i < 3; i++) {
-        if (fgets(line2, sizeof(line2), score_file) != NULL) {
-            score_list[i] = atoi(line2);
-            printf("Score[%d]: %d\n", i + 1, score_list[i]);
-        } else {
-            printf("Error čtení skóre\n");
-            break;  // Exit the loop if an error occurs while reading
-        }
-    }
-
-    sortThreeInts(&score_list[0],&score_list[1],&score_list[2]);
-    for (int i = 0; i < 3; i++) printf("Score[%d]: %d\n", i, score_list[i]);
-
-    fclose(score_file);
+    read_score(score_list);
+    // for (int i = 0; i < 3; i++) printf("Score[%d]: %d\n", i, score_list[i]);
 
     int score = 0;
     SDL_Color textColor = {255,255,255,0};
@@ -50,11 +34,11 @@ int main()
     bool quit = false;
     bool keyboard = false;
     int lives = 3;
-    bool end_game = false;
-    bool render_ball = false;
     bool fly_flag = true;
     bool loaded_field = true;
+    bool render_ball = false;
     bool game_start = false;
+    bool end_game = false;
     int menu = 0;
     int pos_x = 400;
     int ball_x = 400;
@@ -93,9 +77,7 @@ int main()
         }
         row++;
     }
-
     fclose(field_file);
-
 
     for (int i = 0; i< 15; i++) {
         field[i] = generate_blocks(15,5,i);
@@ -304,12 +286,16 @@ int main()
                 }
 
                 //Kontrola kolize s bloky
-                for (int i = 0; i < 15;i++) {
-                    check_row_collision(&ball,hitbox_ball,field2[i],15,&score);
-                } 
-
-                // check_row_collision(&ball,hitbox_ball,green_blocks,15,&score);
-                // check_row_collision(&ball,hitbox_ball,blocks,15,&score);
+                if (loaded_field) {
+                    for (int i = 0; i < 15;i++) {
+                        check_row_collision(&ball,hitbox_ball,field2[i],15,&score);
+                    } 
+                }
+                else {
+                    for (int i = 0; i < 15;i++) {
+                        check_row_collision(&ball,hitbox_ball,field[i],15,&score);
+                    }
+                }
 
                 //Pohyb míčku
                 ball.texture.x = ball_x;
@@ -338,32 +324,14 @@ int main()
         SDL_RenderPresent(renderer);
     }
 
-    for (int i = 2; i >= 0;i--) {
-        if (score_list[i] < score) {
-            if (i != 2) {
-                score_list[i+1] = score_list[i];
-            }
-            score_list[i] = score;  
-        }
-    }
-
-    score_file = NULL;
-    score_file = fopen("../score.txt", "wt");
-    
-    for (int i = 0; i < 3; i++) {
-        fprintf(score_file, "%d\n", score_list[i]);
-    }
+    save_score(score_list,score);
 
     for (int i = 0; i < 15;i++) {
         free(field2[i]);
         free(field[i]);
-    } 
-    // free(green_blocks);
-    // free(blocks);
+    }
 
     TTF_CloseFont(font);
-    //free(file_content);
-    fclose(score_file);
 
     quit_game(&window,&renderer);
 

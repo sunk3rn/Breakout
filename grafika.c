@@ -150,7 +150,7 @@ void draw_menu(SDL_Renderer * renderer,TTF_Font* font,int menu, int menu_option,
     //Nevím, jak tohle udělat líp
     if(menu == 0) {
         draw_logo(renderer,font,150,250,500,200);
-        draw_prompt(renderer,font,"Press space to continue",250,450,320,50,textColor);
+        draw_prompt(renderer,font,"Press ENTER to continue",250,450,320,50,textColor);
     }
     else if(menu == 1) {
         char * score_str;
@@ -161,7 +161,7 @@ void draw_menu(SDL_Renderer * renderer,TTF_Font* font,int menu, int menu_option,
         draw_prompt(renderer,font,score_str,250,300,320,50,textColor);
         score_str = format_score(score[2]);
         draw_prompt(renderer,font,score_str,250,350,320,50,textColor);
-        draw_prompt(renderer,font,"Press space to continue",250,450,320,50,textColor);
+        draw_prompt(renderer,font,"Press ENTER to continue",250,450,320,50,textColor);
     }
     
     else if(menu == 2) {
