@@ -66,3 +66,23 @@ void quit_game(SDL_Window ** window, SDL_Renderer ** renderer) {
     SDL_Quit();
     TTF_Quit();
 }
+
+void swap(int* a, int* b) {
+    int tmp = *a;
+    *a = *b;
+    *b = tmp;
+}
+
+void sortThreeInts(int* a, int* b, int* c) {
+    if (*a < *b) {
+        swap(a, b);
+    }
+
+    if (*b < *c) {
+        swap(b, c);
+    }
+
+    if (*a < *b) {
+        swap(a, b);
+    }
+}

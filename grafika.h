@@ -28,4 +28,4 @@ void draw_logo(SDL_Renderer * renderer,TTF_Font* font,int posx, int posy, int wi
 
 void draw_prompt(SDL_Renderer * renderer,TTF_Font* font, char * text,int posx, int posy, int width, int height, SDL_Color textColor);
 
-void draw_menu(SDL_Renderer * renderer,TTF_Font* font,int menu, int menu_option,SDL_Color textColor,SDL_Color selectedColor,int lives, bool keyboard);
+void draw_menu(SDL_Renderer * renderer,TTF_Font* font,int menu, int menu_option,SDL_Color textColor,SDL_Color selectedColor,int lives, bool keyboard,int * score);

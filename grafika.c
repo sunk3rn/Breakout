@@ -70,7 +70,7 @@ void check_row_collision(Ball * ball, Ball hitbox_ball, Block * blocks,int amoun
                 ball->dir_y = 1;
             }
 
-            printf("Score++\n");
+            //printf("Score++\n");
             (*score) += 1;
 
             blocks[i].health -=1;
@@ -93,6 +93,7 @@ void draw_gui(SDL_Renderer * renderer,TTF_Font* font,int score,int lives) {
     SDL_Texture* livesText = SDL_CreateTextureFromSurface(renderer,surfaceLives);
     SDL_FreeSurface(surfaceScore);
     SDL_FreeSurface(surfaceLives);
+
     //Vykreslení skóre
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_Rect scoreBox = {20,0,100,30};
@@ -145,12 +146,25 @@ void draw_prompt(SDL_Renderer * renderer,TTF_Font* font, char * text,int posx, i
     SDL_FreeSurface(surfaceLogo);
 }
 
-void draw_menu(SDL_Renderer * renderer,TTF_Font* font,int menu, int menu_option,SDL_Color textColor,SDL_Color selectedColor,int lives, bool keyboard) {
+void draw_menu(SDL_Renderer * renderer,TTF_Font* font,int menu, int menu_option,SDL_Color textColor,SDL_Color selectedColor,int lives, bool keyboard,int * score) {
+    //Nevím, jak tohle udělat líp
     if(menu == 0) {
         draw_logo(renderer,font,150,250,500,200);
         draw_prompt(renderer,font,"Press space to continue",250,450,320,50,textColor);
-        }
+    }
     else if(menu == 1) {
+        char * score_str;
+        draw_prompt(renderer,font,"Highscores:",250,150,320,50,textColor);
+        score_str = format_score(score[0]);
+        draw_prompt(renderer,font,score_str,250,250,320,50,textColor);
+        score_str = format_score(score[1]);
+        draw_prompt(renderer,font,score_str,250,300,320,50,textColor);
+        score_str = format_score(score[2]);
+        draw_prompt(renderer,font,score_str,250,350,320,50,textColor);
+        draw_prompt(renderer,font,"Press space to continue",250,450,320,50,textColor);
+    }
+    
+    else if(menu == 2) {
         draw_logo(renderer,font,250,150,300,100);
         switch (menu_option)
         {
@@ -176,7 +190,7 @@ void draw_menu(SDL_Renderer * renderer,TTF_Font* font,int menu, int menu_option,
             break;
         }
     }
-    else if (menu == 2) {
+    else if (menu == 3) {
         char * formatted_lives = format_lives(lives);
         draw_logo(renderer,font,250,150,300,100);
         switch (menu_option)

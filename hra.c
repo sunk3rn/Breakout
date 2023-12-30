@@ -6,26 +6,6 @@
 #include "logika.h"
 #include "grafika.h"
 
-// void swap(int* a, int* b) {
-//     int tmp = *a;
-//     *a = *b;
-//     *b = tmp;
-// }
-
-// void sortThreeInts(int* a, int* b, int* c) {
-//     if (*a > *b) {
-//         swap(a, b);
-//     }
-
-//     if (*b > *c) {
-//         swap(b, c);
-//     }
-
-//     if (*a > *b) {
-//         swap(a, b);
-//     }
-// }
-
 int main()
 {
     int res_width = 800;
@@ -41,17 +21,26 @@ int main()
         exit(1);
     }
 
-    // FILE * score_file = NULL;
-    // score_file = fopen("../score.txt", "rt");
-    // char line[100];
+    FILE * score_file = NULL;
+    score_file = fopen("../score.txt", "rt");
+    char line2[100];
 
-    // char** file_content = read_score("../score.txt");
+    int score_list[3];
 
-    // for (int i = 0;i < 3;i++) {
-    //     printf("Score[%d]:%s",i+1,file_content[i]);
-    // }
+    for (int i = 0; i < 3; i++) {
+        if (fgets(line2, sizeof(line2), score_file) != NULL) {
+            score_list[i] = atoi(line2);
+            printf("Score[%d]: %d\n", i + 1, score_list[i]);
+        } else {
+            printf("Error čtení skóre\n");
+            break;  // Exit the loop if an error occurs while reading
+        }
+    }
 
-    // fclose(score_file);
+    sortThreeInts(&score_list[0],&score_list[1],&score_list[2]);
+    for (int i = 0; i < 3; i++) printf("Score[%d]: %d\n", i, score_list[i]);
+
+    fclose(score_file);
 
     int score = 0;
     SDL_Color textColor = {255,255,255,0};
@@ -137,7 +126,7 @@ int main()
                 switch (event.key.keysym.sym)
                 {
                 case SDLK_LEFT:
-                    if (menu == 2 && menu_option ==2) {
+                    if (menu == 3 && menu_option ==2) {
                         lives--;
                         if (lives <= 0) lives = 99;
                     }
@@ -148,7 +137,7 @@ int main()
                     break;
                 
                 case SDLK_RIGHT:
-                    if (menu == 2 && menu_option ==2) {
+                    if (menu == 3 && menu_option ==2) {
                         lives++;
                         if (lives > 99) lives = 1;
                     }
@@ -159,21 +148,24 @@ int main()
                     break;
                 
                 case SDLK_UP:
-                    if (menu == 1 || menu == 2) {
+                    if (menu == 2 || menu == 3) {
                         menu_option--;
                         if (menu_option <= 0) menu_option = 3;
                     }
                     break;
                 
                 case SDLK_DOWN:
-                    if (menu == 1 || menu == 2) {
+                    if (menu == 2 || menu == 3) {
                         menu_option++;
                         if (menu_option > 3) menu_option = 1;
                     }
                     break;
 
                 case SDLK_RETURN:
-                    if (menu == 1) {
+                    if ((menu == 0 || menu == 1) && !game_start) {
+                        menu++;
+                    }
+                    else if (menu == 2) {
                         switch (menu_option)
                         {
                         case 1:
@@ -181,7 +173,7 @@ int main()
                             break;
 
                         case 2:
-                            menu = 2;
+                            menu = 3;
                             break;
 
                         case 3:
@@ -192,27 +184,24 @@ int main()
                             break;
                         }
                     }
-                    else if (menu == 2 ) {
+                    else if (menu == 3 ) {
                         switch (menu_option)
                         {
                         case 1:
                             keyboard = !keyboard;
                             break;
 
-                        case 2:
-                            menu = 2;
-                            menu_option = 1;
-                            break;
 
                         case 3:
-                            menu = 1;
+                            menu = 2;
+                            menu_option = 1;
                             break;
                         
                         default:
                             break;
                         }
                     }
-                    break;
+                break;
 
                 case SDLK_SPACE:
                     if (lives > 0 && game_start) {
@@ -222,11 +211,6 @@ int main()
                         ball.dir_x = 1;
                         ball.dir_y = -1;
                         fly_flag = true;
-                    }
-                    else if (!game_start) {
-                        if (menu == 0) {
-                            menu = 1;
-                        }
                     }
                     break;
                 
@@ -245,7 +229,7 @@ int main()
         SDL_RenderClear(renderer);
 
         if (game_start == false) { //Hlavní menu hry
-            draw_menu(renderer,font,menu,menu_option,textColor,selectedColor,lives,keyboard);
+            draw_menu(renderer,font,menu,menu_option,textColor,selectedColor,lives,keyboard,&score_list);
         }
 
         else { //Začáatek hry
@@ -354,6 +338,21 @@ int main()
         SDL_RenderPresent(renderer);
     }
 
+    for (int i = 2; i >= 0;i--) {
+        if (score_list[i] < score) {
+            if (i != 2) {
+                score_list[i+1] = score_list[i];
+            }
+            score_list[i] = score;  
+        }
+    }
+
+    score_file = NULL;
+    score_file = fopen("../score.txt", "wt");
+    
+    for (int i = 0; i < 3; i++) {
+        fprintf(score_file, "%d\n", score_list[i]);
+    }
 
     for (int i = 0; i < 15;i++) {
         free(field2[i]);
@@ -364,6 +363,7 @@ int main()
 
     TTF_CloseFont(font);
     //free(file_content);
+    fclose(score_file);
 
     quit_game(&window,&renderer);
 
