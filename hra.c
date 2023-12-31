@@ -6,8 +6,7 @@
 #include "logika.h"
 #include "grafika.h"
 
-int main()
-{
+int main() {
     int res_width = 800;
     int res_height = 600;
     SDL_Window* window = NULL;
@@ -22,9 +21,7 @@ int main()
     }
 
     int score_list[3];
-
     read_score(score_list);
-    // for (int i = 0; i < 3; i++) printf("Score[%d]: %d\n", i, score_list[i]);
 
     int score = 0;
     SDL_Color textColor = {255,255,255,0};
@@ -39,6 +36,7 @@ int main()
     bool render_ball = false;
     bool game_start = false;
     bool end_game = false;
+    bool victory_flag = false;
     int menu = 0;
     int pos_x = 400;
     int ball_x = 400;
@@ -183,7 +181,7 @@ int main()
                             break;
                         }
                     }
-                break;
+                    break;
 
                 case SDLK_SPACE:
                     if (lives > 0 && game_start) {
@@ -214,15 +212,22 @@ int main()
             draw_menu(renderer,font,menu,menu_option,textColor,selectedColor,lives,keyboard,&score_list);
         }
 
-        else { //Začáatek hry
+        else { //Začátek hry
             draw_gui(renderer,font,score,lives);
 
             //Vykreslení okraje herního pole
             draw_bounds(renderer,res_width,res_height);
 
             //Vykreslování bloků
-            for (int i = 0; i < 15; i++) {
-                draw_blocks(renderer,field2[i],15);
+            if (loaded_field) {
+                for (int i = 0; i < 15; i++) {
+                    draw_blocks(renderer,field2[i],15);
+                }
+            }
+            else {
+                for (int i = 0; i < 15; i++) {
+                    draw_blocks(renderer,field[i],15);
+                }
             }
 
             // Vykreslení hráčské pálky
@@ -246,7 +251,6 @@ int main()
             if (fly_flag) {
                 //Odrážení míčku od vrchu pálky
                 if (SDL_HasIntersection(&hitbox_ball.texture, &paddle) && (ball_y < 550)) {
-                    // printf("dirx: %d,diry:%d\n",ball.dir_x, ball.dir_y);
                     ball.dir_y = -1;
                     hitbox_ball.dir_y = -1;
                     if (ball_x > paddle.x + 50) {
@@ -257,32 +261,27 @@ int main()
                         ball.dir_x = -1;
                         hitbox_ball.dir_x = -1;
                     }
-                    // printf("AFTER dirx: %d,diry:%d\n",ball.dir_x, ball.dir_y);
                 }
 
                 //Kontrola kolize s bočními hranicemi herního pole
-                if ( ball_x + ball.texture.w >= res_width - 20 || ball_x <= 20) {
+                if (ball_x + ball.texture.w >= res_width - 20 || ball_x <= 20) {
                     ball.dir_x *= -1;
                     hitbox_ball.dir_x *= -1;
                 }
 
-                if ( ball_y + ball.texture.h >= res_height || ball_y <= 60 ) {
+                if (ball_y + ball.texture.h >= res_height || ball_y <= 60) {
                     ball.dir_y *= -1;
                     hitbox_ball.dir_y *= -1;
                 }
 
                 //Odrážení míčku od boku pálky 
                 if (SDL_HasIntersection(&hitbox_ball.texture, &paddle) && (ball_y > 550)) { 
-                    // printf("texture_y: %d,ball_y:%d\n",hitbox_ball.texture.y, ball_y);
-                    // printf("dirx: %d,diry:%d\n",ball.dir_x, ball.dir_y);
                     if (SDL_HasIntersection(&hitbox_ball.texture, &paddle)) ball_y -= ((ball_y + ball.texture.h) - 550 + 2); 
 
-                    //printf("AFTER:6 texture_y: %d,ball_y:%d\n",hitbox_ball.texture.y, ball_y);
                     ball.dir_x *= -1;
                     hitbox_ball.dir_x *= -1;
                     ball.dir_y *= -1;
                     hitbox_ball.dir_y *= -1;
-                    //printf("AFTER dirx: %d,diry:%d\n",ball.dir_x, ball.dir_y);
                 }
 
                 //Kontrola kolize s bloky
@@ -305,7 +304,16 @@ int main()
                 ball.texture.y = ball_y;
                 hitbox_ball.texture.y = ball_y -1;
                 ball_y += ball.dir_y * 3;
-                
+            }
+
+            victory_flag = true;
+            for (int x = 0; x < 15;x++) {
+                for (int y = 0; y < 15;y++) {
+                    if (!field2[x][y].broken) {
+                        victory_flag = false;
+                        break;
+                    }
+                }
             }
             
             //Vykreslování míčku
@@ -317,6 +325,12 @@ int main()
             }
             else {
                 draw_prompt(renderer,font,"Press SPACE to release the ball",200,450,450,50,textColor); 
+            }
+            if (victory_flag && !end_game) {
+                draw_prompt(renderer,font,"You Won!",300,300,230,50,textColor);
+            }
+            else if (!victory_flag && end_game) {
+                draw_prompt(renderer,font,"GAME OVER",300,300,230,50,textColor);
             }
         }
 

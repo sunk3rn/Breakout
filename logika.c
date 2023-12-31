@@ -94,7 +94,7 @@ void read_score(int * score_list) {
     for (int i = 0; i < 3; i++) {
         if (fgets(line, sizeof(line), score_file) != NULL) {
             score_list[i] = atoi(line);
-            printf("Score[%d]: %d\n", i + 1, score_list[i]);
+            //printf("Score[%d]: %d\n", i + 1, score_list[i]);
         } else {
             printf("Error čtení skóre\n");
             break;

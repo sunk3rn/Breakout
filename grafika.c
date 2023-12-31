@@ -37,10 +37,11 @@ void draw_bounds (SDL_Renderer * renderer,int res_width, int res_height) {
 void draw_blocks (SDL_Renderer * renderer, Block * blocks, int amount) {
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
     for (int i = 0; i < amount; i++) {
-        if (blocks[i].broken == true) {
+        if (blocks[i].health == 0) {
+            blocks[i].broken = true;
             SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         } 
-        else if (blocks[i].health == 11){
+        else if (blocks[i].health >= 11){
             SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
         }
         else if (blocks[i].health == 8){
@@ -49,7 +50,7 @@ void draw_blocks (SDL_Renderer * renderer, Block * blocks, int amount) {
         else if (blocks[i].health == 5){
             SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
         }
-        else if (blocks[i].health <= -1){
+        else if (blocks[i].health <= 1){
             SDL_SetRenderDrawColor(renderer, 255, 192, 203, 255);
         }
         else {
@@ -104,6 +105,7 @@ void draw_gui(SDL_Renderer * renderer,TTF_Font* font,int score,int lives) {
     scoreText = SDL_CreateTextureFromSurface(renderer,surfaceScore); 
     SDL_RenderCopy(renderer,scoreText,NULL,&scoreBox);
     SDL_FreeSurface(surfaceScore);
+    SDL_DestroyTexture(scoreText);
     free(formattedScore);
 
     //Vykreslení životů
@@ -114,6 +116,7 @@ void draw_gui(SDL_Renderer * renderer,TTF_Font* font,int score,int lives) {
     livesText = SDL_CreateTextureFromSurface(renderer,surfaceLives); 
     SDL_RenderCopy(renderer,livesText,NULL,&livesBox);
     SDL_FreeSurface(surfaceLives);
+    SDL_DestroyTexture(livesText);
     free(formattedLives);
 }
 
@@ -157,10 +160,13 @@ void draw_menu(SDL_Renderer * renderer,TTF_Font* font,int menu, int menu_option,
         draw_prompt(renderer,font,"Highscores:",250,150,320,50,textColor);
         score_str = format_score(score[0]);
         draw_prompt(renderer,font,score_str,250,250,320,50,textColor);
+        free(score_str);
         score_str = format_score(score[1]);
         draw_prompt(renderer,font,score_str,250,300,320,50,textColor);
+        free(score_str);
         score_str = format_score(score[2]);
         draw_prompt(renderer,font,score_str,250,350,320,50,textColor);
+        free(score_str);
         draw_prompt(renderer,font,"Press ENTER to continue",250,450,320,50,textColor);
     }
     
