@@ -209,7 +209,7 @@ int main() {
         SDL_RenderClear(renderer);
 
         if (game_start == false) { //Hlavní menu hry
-            draw_menu(renderer,font,menu,menu_option,textColor,selectedColor,lives,keyboard,&score_list);
+            draw_menu(renderer,font,menu,menu_option,textColor,selectedColor,lives,keyboard,score_list);
         }
 
         else { //Začátek hry

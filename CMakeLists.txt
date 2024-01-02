@@ -15,7 +15,6 @@ link_directories(${SDL2_TTF_LIBRARY_DIRS})
 # Vytvoření programu s názvem `hra`
 # Program se bude skládat ze dvou zadaných zdrojových souborů (jednotek překladu)
 add_executable(hra hra.c logika.c grafika.c)
-#add_executable(hra hra.c grafika.c)
 
 # Nastavte linker tak, aby vyhledával knihovnu SDL_ttf
 set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -L${SDL2_ttf_LIBRARY_DIRS}")
