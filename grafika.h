@@ -4,8 +4,8 @@
 
 typedef struct {
     SDL_Rect texture;
-    int dir_x;
-    int dir_y;
+    float dir_x;
+    float dir_y;
 } Ball;
 
 typedef struct {

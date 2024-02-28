@@ -1,12 +1,13 @@
-# 🧱 Breakout
-Projekt do předmětu UPR na téma Breakout, s pomocí knihovny SDL.
+## [EN version](ENREADME.md)
+# 🧱 Breakout 
+Projekt do předmětu UPR na téma Breakout, s pomocí knihovny SDL. (Pokud to ukradnete, tak vás kelvin dostane!)
 
 ## 📕 Pravidla
 Pomocí jedné koule musí hráč srazit co nejvíce cihel pomocí zdí a/nebo pádla pod nimi, aby zasáhl míč o cihly a zlikvidoval je. Pokud hráčova pálka mine odskok míče, ztratí život. Hráč má tři životy na to, aby vyčistit obrazovku od cihel. 
 
 # 🕹️ Popis hry:
 
-## 🏗️ Build Instructions
+## 🏗️ Instrukce pro přeložení
 
 Pro překlad je potřeba:
 - CMake
@@ -27,8 +28,13 @@ make && ./hra
 
 ## 🎮 Jak hrát
 
-### Ovládání
+### 🎛️ Ovládání
 - V menu se lze pohybovat pomocí šipek, potvrzovat pomocí klávesy `Enter`. 
 - Jakmile spustíte hru, tak pro vypuštění míčku zmáčkněte mezerník, pálkou lze hýbat buď myší a nebo šipkami (Podle nastavení)
-### Nastavení
+### ⚙️ Nastavení
 - Lze nastavit ovládání pomocí myši nebo klávesnice a počet životů při startu hry
+  
+
+## Problémy:
+- Míček dělá binec při odrazu od boku bloků
+- Odrazy míčku nejsou náhodné
